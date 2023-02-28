@@ -1,0 +1,4 @@
+# tests/CMakeLists.txt
+add_executable(thrust_vector_sequence_generator_test thrust_vector_sequence_generator_test.cpp)
+target_link_libraries(thrust_vector_sequence_generator_test controller)
+add_test(NAME thrust_vector_sequence_generator_test COMMAND thrust_vector_sequence_generator_test)
