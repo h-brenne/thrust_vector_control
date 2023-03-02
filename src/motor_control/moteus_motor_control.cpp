@@ -20,7 +20,7 @@ MoteusMotorControl::MoteusMotorControl(const int main_cpu, const int can_cpu, co
 	, servo_bus_map_(servo_bus_map)
 	, moteus_interface_{get_initialization_options(can_cpu)}
 	{
-	moteus::ConfigureRealtime(main_cpu);
+		moteus::ConfigureRealtime(main_cpu);
 }
 
 MoteusInterface::Options MoteusMotorControl::get_initialization_options(int can_cpu)

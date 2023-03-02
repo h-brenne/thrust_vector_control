@@ -27,6 +27,8 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <fstream>
+#include <iterator>
 
 #include "moteus_protocol.h"
 #include "pi3hat_moteus_interface.h"
@@ -39,7 +41,8 @@ class MoteusMotorControl {
 		MoteusMotorControl(const int main_cpu, const int can_cpu,
                     const float period_s,
                     const std::vector<std::pair<int, int>> servo_bus_map);
-
+		// Has to be implemented here for linker to work with template function
+		// Open to other solutions
 		template <typename Controller>
 		void Run(Controller *controller) {
 			std::vector<MoteusInterface::ServoCommand> commands;
@@ -71,8 +74,9 @@ class MoteusMotorControl {
 			double total_margin = 0.0;
 			uint64_t margin_cycles = 0;
 
+			std::vector<std::string> log_data{"Bus, ID, Mode, Velocity"};
 			// We will run at a fixed cycle time.
-			while (true)
+			while (cycle_count < 10000)
 			{
 				cycle_count++;
 				margin_cycles++;
@@ -90,13 +94,14 @@ class MoteusMotorControl {
 							result << std::fixed;
 							for (const auto &item : saved_replies)
 							{
-								result << item.id << "/"
-											<< item.bus << "/"
-											<< static_cast<int>(item.result.mode) << "/"
-											<< item.result.position << " ";
+								result << item.id << ","
+											<< item.bus << ","
+											<< static_cast<int>(item.result.mode) << ","
+											<< item.result.velocity << " ";
 							}
 							return result.str();
 						}();
+						log_data.push_back(modes);
 						std::cout << std::setprecision(6) << std::fixed
 											<< "Cycles " << cycle_count
 											<< "  margin: " << (total_margin / margin_cycles)
@@ -157,6 +162,10 @@ class MoteusMotorControl {
 						});
 				can_result = promise->get_future();
 			}
+
+			std::ofstream output_file("./example.csv");
+			std::ostream_iterator<std::string> output_iterator(output_file, "\n");
+			std::copy(std::begin(log_data), std::end(log_data), output_iterator);
 		}
 
 	private:
@@ -165,6 +174,7 @@ class MoteusMotorControl {
 		const float period_s_;
 		const std::vector<std::pair<int, int>> servo_bus_map_;
 		MoteusInterface moteus_interface_;
+		
 
 		MoteusInterface::Options get_initialization_options(int can_cpu);
 };

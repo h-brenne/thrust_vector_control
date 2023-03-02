@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 
 	int main_cpu = 1;
 	int can_cpu = 2;
-	float period_s = 0.01;
+	float period_s = 0.0005;
 	std::vector<std::pair<int, int>> servo_bus_map = {{1,1}};
 
 	// Lock memory for the whole process.
@@ -29,6 +29,5 @@ int main(int argc, char **argv) {
 	MoteusMotorControl motor_controller(main_cpu, can_cpu, period_s,
                     										servo_bus_map);
 	motor_controller.Run(&controller);
-
 	return 0;
 }

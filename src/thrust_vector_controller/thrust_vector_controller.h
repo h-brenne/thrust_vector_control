@@ -16,8 +16,9 @@ class ThrustVectorController {
                                 int id, int bus);
         void Run(const std::vector<MoteusInterface::ServoReply>& status,
                 std::vector<MoteusInterface::ServoCommand>* output);
-    
+        void Stop();
     private:
         int cycle_count_;
+        bool stop_;
 };
 #endif
