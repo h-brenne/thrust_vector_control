@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
 
 	// Lock memory for the whole process.
 	LockMemory();
-	ThrustVectorController controller();
+	ThrustVectorController controller;
 	MoteusMotorControl motor_controller(main_cpu, can_cpu, period_s,
                     										servo_bus_map);
 	motor_controller.Run(&controller);
