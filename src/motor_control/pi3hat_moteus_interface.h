@@ -160,6 +160,10 @@ class Pi3HatMoteusInterface {
           moteus::EmitPositionCommand(&write_frame, cmd.position, cmd.resolution);
           break;
         }
+        case Mode::kSinusoidal: {
+          moteus::EmitSinusoidalPositionCommand(&write_frame, cmd.position, cmd.resolution);
+          break;
+        }
         default: {
           throw std::logic_error("unsupported mode");
         }
