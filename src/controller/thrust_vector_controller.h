@@ -3,22 +3,22 @@
 
 #include "../motor_control/moteus_protocol.h"
 #include "../motor_control/pi3hat_moteus_interface.h"
-
+#include "controller.h"
 
 using namespace mjbots;
 using MoteusInterface = moteus::Pi3HatMoteusInterface;
 
-class ThrustVectorController {
+class ThrustVectorController : public Controller {
     public:
         ThrustVectorController();
-        void Initialize(std::vector<MoteusInterface::ServoCommand>* commands);
-        moteus::QueryResult Get(const std::vector<MoteusInterface::ServoReply>& replies,
+        void initialize(std::vector<MoteusInterface::ServoCommand>* commands);
+        moteus::QueryResult get(const std::vector<MoteusInterface::ServoReply>& replies,
                                 int id, int bus);
-        void Run(const std::vector<MoteusInterface::ServoReply>& status,
+        bool run(const std::vector<MoteusInterface::ServoReply>& status,
                 std::vector<MoteusInterface::ServoCommand>* output);
-        void Stop();
     private:
         int cycle_count_;
         bool stop_;
+        std::chrono::time_point<std::chrono::steady_clock> start_time_;
 };
 #endif
