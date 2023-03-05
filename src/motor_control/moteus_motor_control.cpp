@@ -65,7 +65,7 @@ void MoteusMotorControl::run(Controller *controller) {
 	uint64_t cycle_count = 0;
 	double total_margin = 0.0;
 
-	std::vector<std::string> log_data{"Time,Bus,ID,Mode,Velocity"};
+	std::vector<std::string> log_data{"Time,Bus,ID,Mode,Velocity,Torque,Temperature,Voltage"};
 
 	bool stop = false;
 	while (!stop)
@@ -80,7 +80,7 @@ void MoteusMotorControl::run(Controller *controller) {
 				const std::string modes = [&]()
 				{
 					std::ostringstream result;
-					result.precision(4);
+					result.precision(5);
 					result << std::fixed;
 					for (const auto &item : saved_replies)
 					{
@@ -88,7 +88,10 @@ void MoteusMotorControl::run(Controller *controller) {
 								<< item.id << ","
 								<< item.bus << ","
 								<< static_cast<int>(item.result.mode) << ","
-								<< item.result.velocity << " ";
+								<< item.result.velocity << ","
+								<< item.result.torque << ","
+								<< item.result.temperature << ","
+								<< item.result.voltage;
 					}
 					return result.str();
 				}();

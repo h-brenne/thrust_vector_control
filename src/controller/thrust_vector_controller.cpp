@@ -13,13 +13,21 @@ void ThrustVectorController::initialize(std::vector<MoteusInterface::ServoComman
     res.position = moteus::Resolution::kInt8;
     res.velocity = moteus::Resolution::kInt16;
     res.feedforward_torque = moteus::Resolution::kIgnore;
+    res.sinusoidal_amplitude = moteus::Resolution::kInt16;
+    res.sinusoidal_phase = moteus::Resolution::kInt16;
     res.kp_scale = moteus::Resolution::kIgnore;
     res.kd_scale = moteus::Resolution::kIgnore;
     res.maximum_torque = moteus::Resolution::kIgnore;
     res.stop_position = moteus::Resolution::kIgnore;
     res.watchdog_timeout = moteus::Resolution::kIgnore;
+    
+    moteus::QueryCommand query_cmd;
+    // We don't care about position
+    query_cmd.position = moteus::Resolution::kIgnore;
+
     for (auto& cmd : *commands) {
-    cmd.resolution = res;
+        cmd.resolution = res;
+        cmd.query = query_cmd;
     }
     start_time_ = std::chrono::steady_clock::now();
 }
@@ -31,18 +39,27 @@ moteus::QueryResult ThrustVectorController::get(const std::vector<MoteusInterfac
     return {};
 }
 
+void ThrustVectorController::velocity_sweep(MoteusInterface::ServoCommand* output, float start_velocity, float end_velocity, 
+                                            float elapsed_seconds, float end_time_seconds) {
+    // Todo
+
+}
+
 bool ThrustVectorController::run(const std::vector<MoteusInterface::ServoReply>& status,
         std::vector<MoteusInterface::ServoCommand>* output) {
     bool stop = false;
     auto now = std::chrono::steady_clock::now();
     std::chrono::duration<double> elapsed = now - start_time_;
-    if (elapsed.count() < 0.1 or elapsed.count() > 5.0) {
-        for (auto& cmd : *output) {
-            // We start everything with a stopped command to clear faults.
-            cmd.mode = moteus::Mode::kStopped;
-        }
+    
+    auto& first_out = output->at(0);  // We constructed this, so we know the order.
+    // Startup sequence
+    // Makes sure that the hinged rotor folds out more gracefully
+    float startup_sequence_length_seconds = 2.0;
+    float startup_sequence_end_velocity = 4;
+    if (elapsed.count() < startup_sequence_length_seconds) {
+        velocity_sweep(&first_out, 0.0, startup_sequence_end_velocity, 
+                       elapsed.count(), startup_sequence_length_seconds);
     } else {
-        auto& first_out = output->at(0);  // We constructed this, so we know the order.
         first_out.mode = moteus::Mode::kSinusoidal;
         first_out.position.position = std::numeric_limits<double>::quiet_NaN();
         first_out.position.velocity = 4;
@@ -50,10 +67,10 @@ bool ThrustVectorController::run(const std::vector<MoteusInterface::ServoReply>&
         first_out.position.sinusoidal_phase = 0.0;
     }
     if (elapsed.count() > 5.0) {
+        first_out.mode = moteus::Mode::kStopped;
         stop = true;
     } else { 
         stop = false;
     }
     return stop;
-    
 }

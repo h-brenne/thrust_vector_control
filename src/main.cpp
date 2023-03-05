@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
 	LockMemory();
 	ThrustVectorController controller;
 	MoteusMotorControl motor_controller(main_cpu, can_cpu, period_s,
-                    					servo_bus_map, "example.csv");
+                    					servo_bus_map, "logs/test.csv");
 	motor_controller.run(&controller);
 	return 0;
 }
