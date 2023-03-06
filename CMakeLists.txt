@@ -3,9 +3,8 @@ set(CMAKE_SYSTEM_PROCESSOR ARM)
 project(thrust_vector_control VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 11)
 
-#set(CMAKE_LIBRARY_ARCHITECTURE arm-linux-gnueabihf)
 set(CMAKE_CXX_FLAGS "-mcpu=cortex-a53 -Wno-psabi" CACHE STRING "compile flags" FORCE)
-#include(CTest)
+include(CTest)
 enable_testing()
 
 add_library(date INTERFACE)
@@ -13,7 +12,7 @@ target_include_directories(date INTERFACE third_party_libraries/)
 
 include_directories(src /opt/vc/include)
 link_directories(/opt/vc/lib)
-#find_package(bcm_host)
+
 find_package(Threads REQUIRED)
 if(THREADS_HAVE_PTHREAD_ARG)
   target_compile_options(thrust_vector_control PUBLIC "-pthread")
@@ -30,7 +29,6 @@ if(CMAKE_THREAD_LIBS_INIT)
   endif()
 target_link_libraries(thrust_vector_control -lbcm_host date)
 
-#set(CMAKE_CXX_FLAGS "-mcpu=cortex-a53" "-lbcm_host" CACHE STRING "compile flags" FORCE)
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)

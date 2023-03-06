@@ -110,15 +110,60 @@ enum Register : uint32_t {
   kPositionKi = 0x031,
   kPositionKd = 0x032,
   kPositionFeedforward = 0x033,
-  kPositionCommand = 0x034,
+  kPositionCommandTorque = 0x034,
 
+  kControlPosition = 0x038,
+  kControlVelocity = 0x039,
+  kControlTorque = 0x03a,
+  kErrorPosition = 0x03b,
+  kErrorVelocity = 0x03c,
+  kErrorTorque = 0x03d,
+
+  kStayWithinLower = 0x040,
+  kStayWithinUpper = 0x041,
+  kStayWithinFeedforward = 0x042,
+  kStayWithinKpScale = 0x043,
+  kStayWithinKdScale = 0x044,
+  kStayWithinMaxTorque = 0x045,
+  kStayWithinTimeout = 0x046,
+
+  kEncoder0Position = 0x050,
+  kEncoder0Velocity = 0x051,
+  kEncoder1Position = 0x052,
+  kEncoder1Velocity = 0x053,
+  kEncoder2Position = 0x054,
+  kEncoder2Velocity = 0x055,
+  kEncoderValidity = 0x058,
+  kAux1GpioCommand = 0x05c,
+  kAux2GpioCommand = 0x05d,
+  kAux1GpioStatus = 0x05e,
+  kAux2GpioStatus = 0x05f,
+
+  kAux1AnalogIn1 = 0x060,
+  kAux1AnalogIn2 = 0x061,
+  kAux1AnalogIn3 = 0x062,
+  kAux1AnalogIn4 = 0x063,
+  kAux1AnalogIn5 = 0x064,
+
+  kAux2AnalogIn1 = 0x068,
+  kAux2AnalogIn2 = 0x069,
+  kAux2AnalogIn3 = 0x06a,
+  kAux2AnalogIn4 = 0x06b,
+  kAux2AnalogIn5 = 0x06c,
+
+  kModelNumber = 0x100,
+  kFirmwareVersion = 0x101,
   kRegisterMapVersion = 0x102,
+  kMultiplexId = 0x110,
+
   kSerialNumber = 0x120,
   kSerialNumber1 = 0x120,
   kSerialNumber2 = 0x121,
   kSerialNumber3 = 0x122,
 
-  kRezero = 0x130,
+  kSetOutputNearest = 0x130,
+  kSetOutputExact = 0x131,
+  kRequireReindex = 0x132,
 };
 
 enum class Mode {
@@ -697,6 +742,7 @@ struct QueryCommand {
   Resolution voltage = Resolution::kInt8;
   Resolution temperature = Resolution::kInt8;
   Resolution fault = Resolution::kInt8;
+  Resolution control_velocity = Resolution::kInt16;
 
   bool any_set() const {
     return mode != Resolution::kIgnore ||
@@ -708,7 +754,8 @@ struct QueryCommand {
         rezero_state != Resolution::kIgnore ||
         voltage != Resolution::kIgnore ||
         temperature != Resolution::kIgnore ||
-        fault != Resolution::kIgnore;
+        fault != Resolution::kIgnore ||
+        control_velocity != Resolution::kIgnore;
   }
 };
 
@@ -738,6 +785,11 @@ inline void EmitQueryCommand(
       combiner.MaybeWrite();
     }
   }
+  {
+    WriteCombiner<1> combiner(frame, 0x10, Register::kControlVelocity, {
+        command.control_velocity});
+    combiner.MaybeWrite();
+  }
 }
 
 struct QueryResult {
@@ -750,6 +802,7 @@ struct QueryResult {
   bool rezero_state = false;
   double voltage = std::numeric_limits<double>::quiet_NaN();
   double temperature = std::numeric_limits<double>::quiet_NaN();
+  double control_velocity = std::numeric_limits<double>::quiet_NaN();
   int fault = 0;
 };
 
@@ -796,6 +849,10 @@ inline QueryResult ParseQueryResult(const uint8_t* data, size_t size) {
       }
       case Register::kTemperature: {
         result.temperature = parser.ReadTemperature(res);
+        break;
+      }
+      case Register::kControlVelocity: {
+        result.control_velocity = parser.ReadVelocity(res);
         break;
       }
       case Register::kFault: {
