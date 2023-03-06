@@ -24,6 +24,7 @@ void ThrustVectorController::initialize(std::vector<MoteusInterface::ServoComman
     moteus::QueryCommand query_cmd;
     // We don't care about position
     query_cmd.position = moteus::Resolution::kIgnore;
+    query_cmd.control_velocity = moteus::Resolution::kInt16;
 
     for (auto& cmd : *commands) {
         cmd.resolution = res;

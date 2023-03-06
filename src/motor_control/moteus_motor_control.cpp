@@ -65,7 +65,8 @@ void MoteusMotorControl::run(Controller *controller) {
 	uint64_t cycle_count = 0;
 	double total_margin = 0.0;
 
-	std::vector<std::string> log_data{"Time,Bus,ID,Mode,Velocity,Torque,Temperature,Voltage"};
+	std::vector<std::string> log_data{
+		"Time,Bus,ID,Mode,Velocity,Torque,ControlVelocity,VelocityCommand,AmplitudeCommand,PhaseCommand,Temperature,Voltage"};
 
 	bool stop = false;
 	while (!stop)
@@ -82,6 +83,12 @@ void MoteusMotorControl::run(Controller *controller) {
 					std::ostringstream result;
 					result.precision(5);
 					result << std::fixed;
+
+					// Does not scale to multiple actuators
+					auto& first_out = commands.at(0);
+					float velocity_cmd = first_out.position.velocity;
+					float amplitude_cmd = first_out.position.sinusoidal_amplitude;
+					float phase_cmd = first_out.position.sinusoidal_phase;
 					for (const auto &item : saved_replies)
 					{
 						result << std::chrono::system_clock::now() << ","
@@ -90,6 +97,10 @@ void MoteusMotorControl::run(Controller *controller) {
 								<< static_cast<int>(item.result.mode) << ","
 								<< item.result.velocity << ","
 								<< item.result.torque << ","
+								<< item.result.control_velocity << ","
+								<< velocity_cmd << ","
+								<< amplitude_cmd << ","
+								<< phase_cmd << ","
 								<< item.result.temperature << ","
 								<< item.result.voltage;
 					}
