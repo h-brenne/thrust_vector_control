@@ -14,8 +14,8 @@ class ThrustVectorController : public Controller {
         void initialize(std::vector<MoteusInterface::ServoCommand>* commands);
         moteus::QueryResult get(const std::vector<MoteusInterface::ServoReply>& replies,
                                 int id, int bus);
-        void velocity_sweep(MoteusInterface::ServoCommand* output, float start_velocity, float end_velocity, 
-                            float elapsed_seconds, float end_time_seconds);
+        float value_sweep(float start_value, float end_value, float elapsed_seconds, float end_time_seconds);
+        void startup_sequence(MoteusInterface::ServoCommand* command, float elapsed_seconds, float end_time_seconds);
         bool run(const std::vector<MoteusInterface::ServoReply>& status,
                 std::vector<MoteusInterface::ServoCommand>* output);
     private:

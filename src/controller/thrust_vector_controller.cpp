@@ -40,10 +40,14 @@ moteus::QueryResult ThrustVectorController::get(const std::vector<MoteusInterfac
     return {};
 }
 
-void ThrustVectorController::velocity_sweep(MoteusInterface::ServoCommand* output, float start_velocity, float end_velocity, 
-                                            float elapsed_seconds, float end_time_seconds) {
-    // Todo
+float ThrustVectorController::value_sweep(float start_value, float end_value, float elapsed_seconds, float end_time_seconds) {
+    return start_value+(elapsed_seconds/end_time_seconds)*(end_value-start_value);
+}
 
+void ThrustVectorController::startup_sequence(MoteusInterface::ServoCommand* command, float elapsed_seconds, float end_time_seconds) {
+    float end_velocity = 5.0;
+    command->position.velocity = value_sweep(0,end_velocity, elapsed_seconds, end_time_seconds);
+    return;
 }
 
 bool ThrustVectorController::run(const std::vector<MoteusInterface::ServoReply>& status,
@@ -55,15 +59,15 @@ bool ThrustVectorController::run(const std::vector<MoteusInterface::ServoReply>&
     auto& first_out = output->at(0);  // We constructed this, so we know the order.
     // Startup sequence
     // Makes sure that the hinged rotor folds out more gracefully
-    float startup_sequence_length_seconds = 2.0;
-    float startup_sequence_end_velocity = 4;
+    float startup_sequence_length_seconds = 1.0;
+    float startup_sequence_end_velocity = 10;
     if (elapsed.count() < startup_sequence_length_seconds) {
-        velocity_sweep(&first_out, 0.0, startup_sequence_end_velocity, 
-                       elapsed.count(), startup_sequence_length_seconds);
+        first_out.mode = moteus::Mode::kSinusoidal;
+        startup_sequence(&first_out, elapsed.count(), startup_sequence_length_seconds);
     } else {
         first_out.mode = moteus::Mode::kSinusoidal;
         first_out.position.position = std::numeric_limits<double>::quiet_NaN();
-        first_out.position.velocity = 4;
+        first_out.position.velocity = 10;
         first_out.position.sinusoidal_amplitude = 0.8;
         first_out.position.sinusoidal_phase = 0.0;
     }
