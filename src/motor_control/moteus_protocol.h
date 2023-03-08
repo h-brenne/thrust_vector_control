@@ -73,6 +73,7 @@ enum Register : uint32_t {
   kTorque = 0x003,
   kQCurrent = 0x004,
   kDCurrent = 0x005,
+  kAbsPosition = 0x006,
   kRezeroState = 0x00c,
   kVoltage = 0x00d,
   kTemperature = 0x00e,
@@ -158,7 +159,6 @@ enum Register : uint32_t {
   kRegisterMapVersion = 0x102,
   kMultiplexId = 0x110,
 
-  kSerialNumber = 0x120,
   kSerialNumber1 = 0x120,
   kSerialNumber2 = 0x121,
   kSerialNumber3 = 0x122,
@@ -182,6 +182,9 @@ enum class Mode {
   kPosition = 10,
   kPositionTimeout = 11,
   kZeroVelocity = 12,
+  kStayWithinBounds = 13,
+  kMeasureInductance = 14,
+  kBrake = 15,
   kSinusoidal = 16,
   kNumModes,
 };
@@ -606,16 +609,16 @@ struct PositionCommand {
 };
 
 struct PositionResolution {
-  Resolution position = Resolution::kFloat;
+  Resolution position = Resolution::kInt8;
   Resolution velocity = Resolution::kFloat;
-  Resolution feedforward_torque = Resolution::kFloat;
+  Resolution feedforward_torque = Resolution::kIgnore;
   Resolution sinusoidal_amplitude = Resolution::kFloat;
   Resolution sinusoidal_phase = Resolution::kFloat;
-  Resolution kp_scale = Resolution::kFloat;
-  Resolution kd_scale = Resolution::kFloat;
+  Resolution kp_scale = Resolution::kIgnore;
+  Resolution kd_scale = Resolution::kIgnore;
   Resolution maximum_torque = Resolution::kIgnore;
-  Resolution stop_position = Resolution::kFloat;
-  Resolution watchdog_timeout = Resolution::kFloat;
+  Resolution stop_position = Resolution::kIgnore;
+  Resolution watchdog_timeout = Resolution::kIgnore;
 };
 
 inline void EmitStopCommand(WriteCanFrame* frame) {
@@ -735,16 +738,16 @@ inline void EmitSinusoidalPositionCommand(WriteCanFrame *frame,
 
 struct QueryCommand {
   Resolution mode = Resolution::kInt16;
-  Resolution position = Resolution::kInt16;
-  Resolution velocity = Resolution::kInt16;
-  Resolution torque = Resolution::kInt16;
+  Resolution position = Resolution::kIgnore;
+  Resolution velocity = Resolution::kFloat;
+  Resolution torque = Resolution::kFloat;
   Resolution q_current = Resolution::kIgnore;
   Resolution d_current = Resolution::kIgnore;
-  Resolution rezero_state = Resolution::kIgnore;
+  Resolution rezero_state = Resolution::kInt8;
   Resolution voltage = Resolution::kInt8;
   Resolution temperature = Resolution::kInt8;
   Resolution fault = Resolution::kInt8;
-  Resolution control_velocity = Resolution::kInt16;
+  Resolution control_velocity = Resolution::kFloat;
 
   bool any_set() const {
     return mode != Resolution::kIgnore ||

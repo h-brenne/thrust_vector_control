@@ -24,8 +24,8 @@ int main(int argc, char **argv) {
 	std::vector<std::pair<int, int>> servo_bus_map = {{1,1}};
 
 	// Test settings
-	float velocity = 15.0;
-	float amplitude = 0.0;
+	float velocity = 40.0;
+	float amplitude = 0.2;
 	float phase = 0.0;
 	float experiment_length_seconds = 5.0;
 	// Lock memory for the whole process.
