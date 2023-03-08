@@ -102,7 +102,9 @@ enum Register : uint32_t {
   kCommandPositionMaxTorque = 0x025,
   kCommandStopPosition = 0x026,
   kCommandTimeout = 0x027,
-
+  kCommandVelocityLimit = 0x028,
+  kCommandAccelLimit = 0x029,
+  
   kCommandSinusoidalAmplitude = 0x2b,
   kCommandSinusoidalPhase = 0x2c,
 

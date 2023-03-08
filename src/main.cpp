@@ -23,9 +23,14 @@ int main(int argc, char **argv) {
 	float period_s = 0.0004;
 	std::vector<std::pair<int, int>> servo_bus_map = {{1,1}};
 
+	// Test settings
+	float velocity = 15.0;
+	float amplitude = 0.0;
+	float phase = 0.0;
+	float experiment_length_seconds = 5.0;
 	// Lock memory for the whole process.
 	LockMemory();
-	ThrustVectorController controller;
+	ThrustVectorController controller(velocity, amplitude, phase, experiment_length_seconds);
 	MoteusMotorControl motor_controller(main_cpu, can_cpu, period_s,
                     					servo_bus_map, "logs/test.csv");
 	motor_controller.run(&controller);

@@ -132,8 +132,23 @@ void MoteusMotorControl::run(Controller *controller) {
 		}
 		next_cycle += period;
 
-		// Run the controller, which decides when to stop the loop
-		stop = controller->run(saved_replies, &commands);
+		
+		if (cycle_count < 5) {
+			for (auto& cmd : commands) {
+				// We start everything with a stopped command to clear faults.
+				cmd.mode = moteus::Mode::kStopped;
+			}
+		} else {
+			// Run the controller, which decides when to stop the loop
+			stop = controller->run(saved_replies, &commands);
+		}
+		
+		if (stop) {
+			for (auto& cmd : commands) {
+				cmd.mode = moteus::Mode::kStopped;
+			}
+		}
+		
 
 		if (can_result.valid())
 		{
