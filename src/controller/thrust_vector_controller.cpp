@@ -79,6 +79,7 @@ void ThrustVectorController::constant_command_run(MoteusInterface::ServoCommand*
 
 void ThrustVectorController::startup_sequence_run(MoteusInterface::ServoCommand* command, float elapsed_seconds) {
     command->mode = moteus::Mode::kSinusoidal;
+    command->position.position = std::numeric_limits<double>::quiet_NaN();
     float end_velocity = velocity_;
     command->position.maximum_torque = 0.1;
     command->position.sinusoidal_amplitude = 0.0;
