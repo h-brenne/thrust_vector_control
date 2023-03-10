@@ -18,8 +18,8 @@ void ThrustVectorController::initialize(std::vector<MoteusInterface::ServoComman
     res.position = moteus::Resolution::kInt8;
     res.velocity = moteus::Resolution::kFloat;
     res.feedforward_torque = moteus::Resolution::kIgnore;
-    res.sinusoidal_amplitude = moteus::Resolution::kFloat;
-    res.sinusoidal_phase = moteus::Resolution::kFloat;
+    res.sinusoidal_amplitude = moteus::Resolution::kInt16;
+    res.sinusoidal_phase = moteus::Resolution::kInt16;
     res.kp_scale = moteus::Resolution::kIgnore;
     res.kd_scale = moteus::Resolution::kIgnore;
     res.maximum_torque = moteus::Resolution::kIgnore;
@@ -30,7 +30,7 @@ void ThrustVectorController::initialize(std::vector<MoteusInterface::ServoComman
     query_cmd.mode = moteus::Resolution::kInt16;
     query_cmd.position = moteus::Resolution::kIgnore;
     query_cmd.velocity = moteus::Resolution::kFloat;
-    query_cmd.torque = moteus::Resolution::kFloat;
+    query_cmd.torque = moteus::Resolution::kInt16;
     query_cmd.q_current = moteus::Resolution::kIgnore;
     query_cmd.d_current = moteus::Resolution::kIgnore;
     query_cmd.rezero_state = moteus::Resolution::kInt8;
@@ -60,19 +60,10 @@ float ThrustVectorController::value_sweep(float start_value, float end_value, fl
 void ThrustVectorController::constant_command_run(MoteusInterface::ServoCommand* command, float elapsed_seconds) {
     command->mode = moteus::Mode::kSinusoidal;
     command->position.position = std::numeric_limits<double>::quiet_NaN();
-    command->position.maximum_torque = 0.1;
+    command->position.maximum_torque = std::numeric_limits<double>::quiet_NaN();
     command->position.velocity = velocity_;
     command->position.sinusoidal_amplitude = amplitude_;
     command->position.sinusoidal_phase = phase_;
-    
-    // New commands to fix bug
-    command->position.kd_scale = 1.0;
-    command->position.kp_scale = 1.0;
-    command->position.feedforward_torque = 0;
-    command->position.watchdog_timeout = std::numeric_limits<double>::quiet_NaN();
-    command->position.stop_position = std::numeric_limits<double>::quiet_NaN();
-    
-    bool is_finished = elapsed_seconds >= experiment_length_;
     return;
 }
 
@@ -81,19 +72,10 @@ void ThrustVectorController::startup_sequence_run(MoteusInterface::ServoCommand*
     command->mode = moteus::Mode::kSinusoidal;
     command->position.position = std::numeric_limits<double>::quiet_NaN();
     float end_velocity = velocity_;
-    command->position.maximum_torque = 0.1;
+    command->position.maximum_torque = 0.5;
     command->position.sinusoidal_amplitude = 0.0;
     command->position.sinusoidal_phase = 0.0;
-    command->position.velocity = value_sweep(0,end_velocity, elapsed_seconds, startup_sequence_length_); 
-    
-    // New commands to fix bug
-    command->position.kd_scale = 1.0;
-    command->position.kp_scale = 1.0;
-    command->position.feedforward_torque = 0;
-    command->position.watchdog_timeout = std::numeric_limits<double>::quiet_NaN();
-    command->position.stop_position = std::numeric_limits<double>::quiet_NaN();
-
-    
+    command->position.velocity = value_sweep(0, end_velocity, elapsed_seconds, startup_sequence_length_); 
     return;
 }
 

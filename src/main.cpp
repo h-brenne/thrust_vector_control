@@ -3,6 +3,8 @@
 #include "motor_control/moteus_motor_control.h"
 #include "controller/thrust_vector_controller.h"
 
+const double PI = 3.14159265358979323846;
+
 void LockMemory()
 	{
 		// We lock all memory so that we don't end up having to page in
@@ -24,9 +26,9 @@ int main(int argc, char **argv) {
 	std::vector<std::pair<int, int>> servo_bus_map = {{1,1}};
 
 	// Test settings
-	float velocity = 40.0;
+	float velocity = 80.0;
 	float amplitude = 0.2;
-	float phase = 0.0;
+	float phase = 170*PI/180;
 	float experiment_length_seconds = 5.0;
 	// Lock memory for the whole process.
 	LockMemory();
