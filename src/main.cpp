@@ -1,5 +1,6 @@
 #include <sys/mman.h>
 #include <iostream>
+#include <vector>
 #include "motor_control/moteus_motor_control.h"
 #include "controller/thrust_vector_controller.h"
 
@@ -26,10 +27,10 @@ int main(int argc, char **argv) {
 	std::vector<std::pair<int, int>> servo_bus_map = {{1,1}};
 
 	// Test settings
-	float velocity = 80.0;
-	float amplitude = 0.2;
-	float phase = 170*PI/180;
-	float experiment_length_seconds = 5.0;
+	std::vector<float> velocity{35.0, 35.0, 35.0, 35.0, 35.0};
+	std::vector<float> amplitude{0.0, 0.3, 0.3, 0.3, 0.0};
+	std::vector<float> phase{0*PI/180, 0*PI/180, 180*PI/180, 90*PI/180, 0.0};
+	float experiment_length_seconds = 2.0;
 	// Lock memory for the whole process.
 	LockMemory();
 	ThrustVectorController controller(velocity, amplitude, phase, experiment_length_seconds);
