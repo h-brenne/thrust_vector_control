@@ -18,17 +18,26 @@ if(THREADS_HAVE_PTHREAD_ARG)
   target_compile_options(thrust_vector_control PUBLIC "-pthread")
 endif()
 
+add_library(controller STATIC 
+    src/controller/thrust_vector_controller.cpp
+    src/controller/thrust_vector_sequence_generator.cpp
+)
+
+
+
 add_executable(thrust_vector_control 
     src/motor_control/moteus_motor_control.cpp
     src/pi3hat/pi3hat.cpp
-    src/controller/thrust_vector_controller.cpp
     src/main.cpp)
 
 if(CMAKE_THREAD_LIBS_INIT)
     target_link_libraries(thrust_vector_control "${CMAKE_THREAD_LIBS_INIT}")
   endif()
-target_link_libraries(thrust_vector_control -lbcm_host date)
+target_link_libraries(thrust_vector_control -lbcm_host date controller)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
+
+enable_testing()
+add_subdirectory(src/tests)
