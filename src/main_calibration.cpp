@@ -5,8 +5,6 @@
 #include "controller/thrust_vector_controller.h"
 #include "controller/thrust_vector_sequence_generator.h"
 
-//const double PI = 3.14159265358979323846;
-
 void LockMemory()
 	{
 		// We lock all memory so that we don't end up having to page in
