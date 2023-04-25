@@ -1,31 +1,24 @@
 name: CTest on Push
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Check out repository
+    - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up ARM toolchain
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+    - name: Install dependencies
+      run: sudo apt-get install cmake g++
 
     - name: Create build directory
       run: mkdir build
 
     - name: Configure CMake
       working-directory: build
-      run: cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain_arm.cmake ..
+      run: cmake ../src/tests
 
-    - name: Build project
+    - name: Build and run tests
       working-directory: build
-      run: make
-
-    - name: Run tests
-      working-directory: build
-      run: ctest
+      run: cmake --build . --config Release && ctest --output-on-failure
