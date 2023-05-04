@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 #include "motor_control/moteus_motor_control.h"
-#include "controller/thrust_vector_controller.h"
+#include "controller/calibration_controller.h"
 #include "controller/thrust_vector_sequence_generator.h"
 
 void LockMemory()
@@ -26,14 +26,14 @@ int main(int argc, char **argv) {
 	int main_cpu = 1;
 	int can_cpu = 2;
 	float period_s = 0.0004;
-	std::vector<std::pair<int, int>> servo_bus_map = {{1,1}};
+	std::vector<std::pair<int, int>> servo_bus_map = {{1,4}};
 
 	float min_velocity = 40.0;
-    float max_velocity = 90.0;
-    float step_velocity = 5.0;
+    float max_velocity = 80.0;
+    float step_velocity = 10.0;
     float min_amplitude = 0.0;
-    float max_amplitude = 0.26;
-    float step_amplitude = 0.04;
+    float max_amplitude = 0.38;
+    float step_amplitude = 0.08;
     float min_phase = 0.0;
     float max_phase = 0.0;
     float step_phase = 1.0;
@@ -52,11 +52,14 @@ int main(int argc, char **argv) {
                   << ", Amplitude: " << amplitudes[i]
                   << ", Phase: " << phases[i] << std::endl;
     }
-	float experiment_length_seconds = 180.0;
+	float step_length = 1.0;
+
+	float experiment_length_seconds = step_length * velocities.size();
+	std::cout << "Experiment length: " << experiment_length_seconds << std::endl;
 
 	// Lock memory for the whole process.
-	//LockMemory();
-	ThrustVectorController controller(velocities, amplitudes, phases, experiment_length_seconds);
+	LockMemory();
+	CalibrationController controller(velocities, amplitudes, phases, experiment_length_seconds);
 	MoteusMotorControl motor_controller(main_cpu, can_cpu, period_s,
                     					servo_bus_map, "logs/test.csv");
 	motor_controller.run(&controller);

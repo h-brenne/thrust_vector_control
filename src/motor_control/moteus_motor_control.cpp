@@ -14,6 +14,7 @@
 #include "moteus_motor_control.h"
 #include <ctime>
 #include "date.h"
+#include <signal.h>
 //#include <fmt/core.h> 
 using namespace date;
 
@@ -27,9 +28,14 @@ MoteusMotorControl::MoteusMotorControl(const int main_cpu, const int can_cpu, co
 	, log_file_(log_file)
 	{
 		moteus::ConfigureRealtime(main_cpu);
+		
 }
-void MoteusMotorControl::stop() {
-	
+
+bool MoteusMotorControl::stop_ = false;
+
+void MoteusMotorControl::stop(int signum) {
+	std::cout << "Stopping" << std::endl;
+	stop_ = true;
 }
 MoteusInterface::Options MoteusMotorControl::get_initialization_options(int can_cpu)
 {
@@ -51,7 +57,6 @@ void MoteusMotorControl::run(Controller *controller) {
 	std::vector<MoteusInterface::ServoReply> saved_replies;
 
 	controller->initialize(&commands);
-
 	MoteusInterface::Data moteus_data;
 	moteus_data.commands = {commands.data(), commands.size()};
 	moteus_data.replies = {replies.data(), replies.size()};
@@ -68,8 +73,10 @@ void MoteusMotorControl::run(Controller *controller) {
 	std::vector<std::string> log_data{
 		"Time,Bus,ID,Mode,Velocity,Torque,ControlVelocity,VelocityCommand,AmplitudeCommand,PhaseCommand,Temperature,Voltage"};
 
-	bool stop = false;
-	while (!stop)
+	int stop_next = false;
+
+	signal(SIGINT, stop);
+	while (!stop_next)
 	{
 		cycle_count++;
 		{
@@ -78,36 +85,43 @@ void MoteusMotorControl::run(Controller *controller) {
 			std::time_t now_t = std::chrono::system_clock::to_time_t(now_system_clock);
 			// Push data to vector if logging is enabled
 			if (!log_file_.empty()) {
-				const std::string modes = [&]()
+				for (const auto &item : saved_replies)
 				{
-					std::ostringstream result;
-					result.precision(5);
-					result << std::fixed;
-
-					// Does not scale to multiple actuators
-					auto& first_out = commands.at(0);
-					float velocity_cmd = first_out.position.velocity;
-					float amplitude_cmd = first_out.position.sinusoidal_amplitude;
-					float phase_cmd = first_out.position.sinusoidal_phase;
-					for (const auto &item : saved_replies)
+					MoteusInterface::ServoCommand* current_command = nullptr;
+					for (auto &command : commands)
 					{
-						result << std::chrono::system_clock::now() << ","
-								<< item.id << ","
-								<< item.bus << ","
-								<< static_cast<int>(item.result.mode) << ","
-								<< item.result.velocity << ","
-								<< item.result.torque << ","
-								<< item.result.control_velocity << ","
-								<< velocity_cmd << ","
-								<< amplitude_cmd << ","
-								<< phase_cmd << ","
-								<< item.result.temperature << ","
-								<< item.result.voltage;
+						if (command.id == item.id && command.bus == item.bus)
+						{
+							current_command = &command;
+							break;
+						}
 					}
-					return result.str();
-				}();
-				if (modes != "") {
-					log_data.push_back(modes);
+					
+					if (current_command)
+					{
+						float velocity_cmd = current_command->position.velocity;
+						float amplitude_cmd = current_command->position.sinusoidal_amplitude;
+						float phase_cmd = current_command->position.sinusoidal_phase;
+
+						std::ostringstream result;
+						result.precision(5);
+						result << std::fixed;
+
+						result << std::chrono::system_clock::now() << ","
+							<< item.id << ","
+							<< item.bus << ","
+							<< static_cast<int>(item.result.mode) << ","
+							<< item.result.velocity << ","
+							<< item.result.torque << ","
+							<< item.result.control_velocity << ","
+							<< velocity_cmd << ","
+							<< amplitude_cmd << ","
+							<< phase_cmd << ","
+							<< item.result.temperature << ","
+							<< item.result.voltage;
+
+						log_data.push_back(result.str());
+					}
 				}
 			}
 
@@ -132,7 +146,7 @@ void MoteusMotorControl::run(Controller *controller) {
 		}
 		next_cycle += period;
 
-		
+		bool controller_stop = false;
 		if (cycle_count < 5) {
 			for (auto& cmd : commands) {
 				// We start everything with a stopped command to clear faults.
@@ -140,13 +154,15 @@ void MoteusMotorControl::run(Controller *controller) {
 			}
 		} else {
 			// Run the controller, which decides when to stop the loop
-			stop = controller->run(saved_replies, &commands);
+			
+			controller_stop = controller->run(saved_replies, &commands);
 		}
 		
-		if (stop) {
+		if (MoteusMotorControl::stop_ or controller_stop) {
 			for (auto& cmd : commands) {
 				cmd.mode = moteus::Mode::kStopped;
 			}
+			stop_next = true;
 		}
 		
 

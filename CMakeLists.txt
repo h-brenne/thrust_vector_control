@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 set(CMAKE_SYSTEM_PROCESSOR ARM) 
 project(thrust_vector_controller VERSION 0.1.0)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 set(CMAKE_CXX_FLAGS "-mcpu=cortex-a53 -Wno-psabi" CACHE STRING "compile flags" FORCE)
 include(CTest)
@@ -19,8 +19,14 @@ if(THREADS_HAVE_PTHREAD_ARG)
 endif()
 
 add_library(controller STATIC 
-    src/controller/thrust_vector_controller.cpp
+    src/controller/calibration_controller.cpp
+    src/controller/pwm_input_controller.cpp
     src/controller/thrust_vector_sequence_generator.cpp
+)
+
+add_library(pwm STATIC
+    src/pwm/pwm_reader.cpp
+    src/controller/pwm_input_controller.cpp
 )
 
 add_executable(thrust_vector_controller 
@@ -38,7 +44,7 @@ if(CMAKE_THREAD_LIBS_INIT)
     target_link_libraries(calibration "${CMAKE_THREAD_LIBS_INIT}")
 endif()
 
-target_link_libraries(thrust_vector_controller -lbcm_host date controller)
+target_link_libraries(thrust_vector_controller -lbcm_host date controller pwm pigpio)
 target_link_libraries(calibration -lbcm_host date controller)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
@@ -47,3 +53,5 @@ include(CPack)
 
 enable_testing()
 add_subdirectory(src/tests)
+# Add the following line to include hardware tests
+add_subdirectory(src/hardware_tests)

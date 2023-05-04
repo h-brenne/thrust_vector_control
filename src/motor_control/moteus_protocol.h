@@ -21,6 +21,7 @@
 #include <cstring>
 #include <limits>
 #include <tuple>
+#include <stdexcept>
 
 constexpr float k2Pi = 6.28318530718;
 

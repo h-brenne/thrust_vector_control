@@ -45,16 +45,13 @@ class MoteusMotorControl {
 		const std::vector<std::pair<int, int>> servo_bus_map_;
 		MoteusInterface moteus_interface_;
 		std::string log_file_;
-		
+		static bool stop_;
 		MoteusInterface::Options get_initialization_options(int can_cpu);
 	public:
 		MoteusMotorControl(const int main_cpu, const int can_cpu,
                     const float period_s,
                     const std::vector<std::pair<int, int>> servo_bus_map, std::string log_file = "");
-		void stop();
-		// Has to be implemented here for linker to work with template function
-		// Open to other solutions
-		//template <typename Controller>
+		static void stop(int signum);
 		void run(Controller *controller);
 };
 

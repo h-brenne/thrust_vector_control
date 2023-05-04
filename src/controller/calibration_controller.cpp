@@ -1,11 +1,10 @@
 #include <stdexcept>
 #include <iostream>
 #include <vector>
-#include "thrust_vector_controller.h"
-// using namespace mjbots;
-// using MoteusInterface = moteus::Pi3HatMoteusInterface;
+#include "calibration_controller.h"
 
-ThrustVectorController::ThrustVectorController(std::vector<float> velocity, std::vector<float> amplitude, std::vector<float> phase, float experiment_length, float startup_sequence_length)
+
+CalibrationController::CalibrationController(std::vector<float> velocity, std::vector<float> amplitude, std::vector<float> phase, float experiment_length, float startup_sequence_length)
     : velocity_(velocity), amplitude_(amplitude), phase_(phase), experiment_length_(experiment_length), startup_sequence_length_(startup_sequence_length)
 {
     if (!(velocity_.size() == amplitude_.size() && amplitude_.size() == phase_.size()))
@@ -14,7 +13,7 @@ ThrustVectorController::ThrustVectorController(std::vector<float> velocity, std:
     }
 };
 
-void ThrustVectorController::initialize(std::vector<MoteusInterface::ServoCommand> *commands)
+void CalibrationController::initialize(std::vector<MoteusInterface::ServoCommand> *commands)
 {
     cycle_count_ = 0;
     moteus::PositionResolution res;
@@ -50,7 +49,7 @@ void ThrustVectorController::initialize(std::vector<MoteusInterface::ServoComman
     start_time_ = std::chrono::steady_clock::now();
 }
 
-moteus::QueryResult ThrustVectorController::get(const std::vector<MoteusInterface::ServoReply> &replies, int id, int bus)
+moteus::QueryResult CalibrationController::get(const std::vector<MoteusInterface::ServoReply> &replies, int id, int bus)
 {
     for (const auto &item : replies)
     {
@@ -62,12 +61,12 @@ moteus::QueryResult ThrustVectorController::get(const std::vector<MoteusInterfac
     return {};
 }
 
-float ThrustVectorController::value_sweep(float start_value, float end_value, float elapsed_seconds, float end_time_seconds)
+float CalibrationController::value_sweep(float start_value, float end_value, float elapsed_seconds, float end_time_seconds)
 {
     return start_value + (elapsed_seconds / end_time_seconds) * (end_value - start_value);
 }
 
-void ThrustVectorController::apply_constant_command(MoteusInterface::ServoCommand *command, float velocity, float amplitude, float phase)
+void CalibrationController::apply_constant_command(MoteusInterface::ServoCommand *command, float velocity, float amplitude, float phase)
 {
     command->mode = moteus::Mode::kSinusoidal;
     command->position.position = std::numeric_limits<double>::quiet_NaN();
@@ -78,7 +77,7 @@ void ThrustVectorController::apply_constant_command(MoteusInterface::ServoComman
     return;
 }
 
-void ThrustVectorController::startup_sequence_run(MoteusInterface::ServoCommand *command, float velocity, float elapsed_seconds)
+void CalibrationController::startup_sequence_run(MoteusInterface::ServoCommand *command, float velocity, float elapsed_seconds)
 {
     command->mode = moteus::Mode::kSinusoidal;
     command->position.position = std::numeric_limits<double>::quiet_NaN();
@@ -90,7 +89,7 @@ void ThrustVectorController::startup_sequence_run(MoteusInterface::ServoCommand 
     return;
 }
 
-void ThrustVectorController::multi_sequence_run(MoteusInterface::ServoCommand *command, float elapsed_seconds)
+void CalibrationController::multi_sequence_run(MoteusInterface::ServoCommand *command, float elapsed_seconds)
 {
     float elapsed_fraction = elapsed_seconds / experiment_length_;
     int command_index = int(elapsed_fraction * velocity_.size());
@@ -100,15 +99,15 @@ void ThrustVectorController::multi_sequence_run(MoteusInterface::ServoCommand *c
     return;
 }
 
-bool ThrustVectorController::run(const std::vector<MoteusInterface::ServoReply> &status,
+bool CalibrationController::run(const std::vector<MoteusInterface::ServoReply> &status,
                                  std::vector<MoteusInterface::ServoCommand> *output)
 {
     bool stop = false;
     auto now = std::chrono::steady_clock::now();
     std::chrono::duration<double> elapsed = now - start_time_;
 
-    // Only one motor controlled as of now
-    auto &first_out = output->at(0); // We constructed this, so we know the order.
+    // Calibration only controls first motor
+    auto &first_out = output->at(0); 
 
     if (elapsed.count() < startup_sequence_length_)
     {
