@@ -22,7 +22,12 @@ thrust vector setpoints will typcially come from a flight controller.
 ## Building the cpp Project
 ### Dependencies
 
-Please refer to `CMakeLists.txt`. 
+Please refer to `CMakeLists.txt`.
+
+With a raspbian-lite image, the following packages required manual install.
+```bash
+sudo apt-get install cmake moteus-pi3hat pigpio
+```
 
 ### Building
 To build the code, follow these steps:
