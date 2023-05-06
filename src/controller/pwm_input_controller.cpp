@@ -99,18 +99,19 @@ bool PWMInputController::run(const std::vector<MoteusInterface::ServoReply> &sta
     }
 
     // Map pulse widths to thrust, elevation, and azimuth
+    float min_thrust = 0.2;
     float max_thrust = 4.0;
-    float max_elevation = 30*M_PI/180;
-    float thrust1 = map(pulse_widths[0], 1000, 2000, 0, max_thrust);
-    float thrust2 = map(pulse_widths[1], 1000, 2000, 0, max_thrust);
+    float max_elevation = 20*M_PI/180;
+    float thrust1 = map(pulse_widths[0], 1000, 2000, min_thrust, max_thrust);
+    float thrust2 = map(pulse_widths[1], 1000, 2000, min_thrust, max_thrust);
     float elevation1 = map(pulse_widths[2], 1000, 2000, 0, max_elevation);
     float elevation2 = map(pulse_widths[3], 1000, 2000, 0, max_elevation);
     float azimuth1 = map(pulse_widths[4], 1000, 2000, -M_PI, M_PI);
     float azimuth2 = map(pulse_widths[5], 1000, 2000, -M_PI, M_PI);
 
     // Assure that all values are within there bounds in case of bad/ unexpected pwm values.
-    thrust1 = clamp(thrust1, 0.0, max_thrust);
-    thrust2 = clamp(thrust2, 0.0, max_thrust);
+    thrust1 = clamp(thrust1, min_thrust, max_thrust);
+    thrust2 = clamp(thrust2, min_thrust, max_thrust);
     elevation1 = clamp(elevation1, 0.0, max_elevation);
     elevation2 = clamp(elevation2, 0.0, max_elevation);
     azimuth1 = clamp(azimuth1, -M_PI, M_PI);
@@ -132,10 +133,11 @@ bool PWMInputController::run(const std::vector<MoteusInterface::ServoReply> &sta
     float phase2 = azimuth2 + phase_offset;
 
     // Assure that command mapping is between expected bounds
-    float max_velocity = 40.0;
+    float min_velocity = std::max(log((min_thrust - b)) / log(a), 0.0);; // Minimum velocity when not disarmed
+    float max_velocity = 80.0;
     float max_amplitude = 0.4;
-    velocity1 = clamp(velocity1, 0.0, max_velocity);
-    velocity2 = clamp(velocity2, 0.0, max_velocity);
+    velocity1 = clamp(velocity1, min_velocity, max_velocity);
+    velocity2 = clamp(velocity2, min_velocity, max_velocity);
     amplitude1 = clamp(amplitude1, 0.0, max_amplitude);
     amplitude2 = clamp(amplitude2, 0.0, max_amplitude);
     //A high or wrong phase should not be dangerous
