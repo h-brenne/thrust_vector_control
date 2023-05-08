@@ -23,8 +23,8 @@ int main(int argc, char **argv) {
 
 	int main_cpu = 1;
 	int can_cpu = 2;
-	float period_s = 0.04;//0.0004 is 2000hz;
-	std::vector<std::pair<int, int>> servo_bus_map = {{1,4}};
+	float period_s = 0.0008;//0.0004 is 2000hz;
+	std::vector<std::pair<int, int>> servo_bus_map = {{1,3},{2,3}};
 
 	
 	int pin_motor1_thrust = 2;
@@ -43,3 +43,4 @@ int main(int argc, char **argv) {
 	motor_controller.run(&controller);
 	return 0;
 }
+

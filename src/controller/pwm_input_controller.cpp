@@ -1,6 +1,7 @@
 #include "pwm_input_controller.h"
 #include <iostream>
 #include <pigpio.h>
+#include "../motor_control/realtime.h"
 
 float clamp(float value, float min_value, float max_value) {
     return std::max(min_value, std::min(value, max_value));
@@ -10,6 +11,13 @@ PWMInputController::PWMInputController(unsigned int pin_motor1_thrust, unsigned 
                                        unsigned int pin_motor1_elevation, unsigned int pin_motor2_elevation,
                                        unsigned int pin_motor1_azimuth, unsigned int pin_motor2_azimuth)
 {
+    // Run on core 3, pi3hat extra stuff is not used
+    mjbots::moteus::ConfigureRealtime(3);
+    // Set gpio sampling rate(first parameter in us). Seconds parameter is PWM or PCM,
+    // didn't see any difference in performance
+    if (gpioCfgClock(1,1,1) < 0) {
+	    std::cerr << "pgpio clock set failed\n";		    
+    }
     if (gpioInitialise() < 0) {
         std::cerr << "pigpio initialization failed\n";
     }

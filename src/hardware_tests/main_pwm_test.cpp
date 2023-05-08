@@ -8,6 +8,7 @@
 #include <pigpio.h>
 #include <signal.h>
 #include "../pwm/pwm_reader.h"
+#include "../motor_control/realtime.h"
 
 bool stop = false;
 std::vector<std::string> log_data;
@@ -29,8 +30,12 @@ int main(int argc, char *argv[]) {
     } else {
         log_filename = "";
     }
+    mjbots::moteus::ConfigureRealtime(1);
 
     std::vector<unsigned int> pins = {2, 3, 4, 27, 6, 13};
+    if (gpioCfgClock(1,1,1) < 0) {
+	    std::cerr << "pgpio clock set failed\n";		    
+    }
     if (gpioInitialise() < 0) {
         std::cerr << "pigpio initialization failed\n";
         return 1;
