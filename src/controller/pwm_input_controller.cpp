@@ -1,6 +1,10 @@
-#include "pwm_input_controller.h"
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <iterator>
+#include <chrono>
 #include <pigpio.h>
+#include "pwm_input_controller.h"
 #include "../motor_control/realtime.h"
 
 float clamp(float value, float min_value, float max_value) {
@@ -9,7 +13,9 @@ float clamp(float value, float min_value, float max_value) {
 
 PWMInputController::PWMInputController(unsigned int pin_motor1_thrust, unsigned int pin_motor2_thrust,
                                        unsigned int pin_motor1_elevation, unsigned int pin_motor2_elevation,
-                                       unsigned int pin_motor1_azimuth, unsigned int pin_motor2_azimuth)
+                                       unsigned int pin_motor1_azimuth, unsigned int pin_motor2_azimuth,
+                                       const std::string& log_filename)
+: log_filename_(log_filename)
 {
     // Run on core 3, pi3hat extra stuff is not used
     mjbots::moteus::ConfigureRealtime(3);
@@ -29,6 +35,15 @@ PWMInputController::PWMInputController(unsigned int pin_motor1_thrust, unsigned 
         std::make_unique<PWMReader>(pin_motor1_azimuth),
         std::make_unique<PWMReader>(pin_motor2_azimuth)
     }};
+
+    if (!log_filename_.empty()) {
+        std::ostringstream header;
+        header << "Timestamp_us";
+        for (size_t i = 0; i < pwm_readers_.size(); ++i) {
+            header << ",Pin" << i;
+        }
+        log_data_.push_back(header.str());
+    }
 }
 
 void PWMInputController::initialize(std::vector<MoteusInterface::ServoCommand> *commands) {
@@ -67,7 +82,23 @@ PWMInputController::~PWMInputController() {
     // There are still ISR callbacks active, as the PWMReaders haven't gone out of scope yet
     // Might move this to main
     gpioTerminate();
+
+    if (!log_filename_.empty()) {
+        try {
+            save_log_data(log_filename_);
+        } catch (const std::exception &e) {
+            std::cerr << "Error saving log data in destructor: " << e.what() << std::endl;
+            // Do not rethrow exception from the destructor
+        }
+    }
 }
+
+void PWMInputController::save_log_data(const std::string &filename) {
+    std::ofstream output_file(filename);
+    std::ostream_iterator<std::string> output_iterator(output_file, "\n");
+    std::copy(std::begin(log_data_), std::end(log_data_), output_iterator);
+}
+
 float PWMInputController::map(float x, float in_min, float in_max, float out_min, float out_max) {
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
@@ -95,6 +126,17 @@ bool PWMInputController::run(const std::vector<MoteusInterface::ServoReply> &sta
         pulse_widths.push_back(pwm_reader->pulse_width());
     }
 
+    // Log pwm if enabled
+    if (!log_filename_.empty()) {
+        std::ostringstream log_line;
+        auto now = std::chrono::steady_clock::now();
+        auto timestamp_us = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
+        log_line << timestamp_us;
+        for (size_t i = 0; i < pulse_widths.size(); ++i) {
+            log_line << "," << pulse_widths[i];
+        }
+        log_data_.push_back(log_line.str());
+    }
     // Check if disarmed
     if (pulse_widths[0] < 970 or pulse_widths[1] < 970) {
         if (output->size() == 1) {

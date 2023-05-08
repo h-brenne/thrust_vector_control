@@ -21,9 +21,9 @@ void LockMemory()
 
 int main(int argc, char **argv) {
 
-	int main_cpu = 1;
+	int main_cpu = 3;
 	int can_cpu = 2;
-	float period_s = 0.0008;//0.0004 is 2000hz;
+	float period_s = 0.001;//0.0004 is 2500hz;
 	std::vector<std::pair<int, int>> servo_bus_map = {{1,3},{2,3}};
 
 	
@@ -32,10 +32,11 @@ int main(int argc, char **argv) {
 	int pin_motor1_elevation = 4;
 	int pin_motor2_elevation = 27;
 	int pin_motor1_azimuth = 6;
-	int pin_motor2_azimuth = 13;
+	int pin_motor2_azimuth = 25;
 
 	PWMInputController controller(pin_motor1_thrust, pin_motor2_thrust, pin_motor1_elevation, 
-								  pin_motor2_elevation, pin_motor1_azimuth, pin_motor2_azimuth);
+								  pin_motor2_elevation, pin_motor1_azimuth, pin_motor2_azimuth,
+								  /*"logs/pwm_data/test_pwm_controller.csv"*/);
 	MoteusMotorControl motor_controller(main_cpu, can_cpu, period_s,
                     					servo_bus_map, "logs/test.csv");
 	// Lock memory for the whole process.

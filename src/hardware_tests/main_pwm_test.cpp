@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     }
     mjbots::moteus::ConfigureRealtime(1);
 
-    std::vector<unsigned int> pins = {2, 3, 4, 27, 6, 13};
+    std::vector<unsigned int> pins = {2, 3, 4, 27, 6, 25};
     if (gpioCfgClock(1,1,1) < 0) {
 	    std::cerr << "pgpio clock set failed\n";		    
     }
