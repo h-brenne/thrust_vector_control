@@ -26,7 +26,8 @@ Please refer to `CMakeLists.txt`.
 
 With a raspbian-lite image, the following packages required manual install.
 ```bash
-sudo apt-get install cmake moteus-pi3hat pigpio
+sudo apt-get install pip cmake pigpio
+sudo pip3 install moteus-pi3hat
 ```
 
 ### Building
