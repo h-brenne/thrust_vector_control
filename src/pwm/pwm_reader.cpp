@@ -1,5 +1,9 @@
 #include "pwm_reader.h"
 #include <pigpio.h>
+#include <cstdint>
+
+
+constexpr uint64_t max_tick_value = static_cast<uint64_t>(UINT32_MAX) + 1;
 
 PWMReader::PWMReader(unsigned int pin) : pin_(pin), rise_tick_(0), pulse_width_(0) {
     gpioSetMode(pin_, PI_INPUT);
@@ -24,6 +28,8 @@ void PWMReader::process_edge(int level, uint32_t tick) {
     if (level == 1) {
         rise_tick_.store(tick);
     } else if (level == 0) {
-        pulse_width_.store(tick - rise_tick_.load());
+        uint64_t diff = static_cast<uint64_t>(tick) - static_cast<uint64_t>(rise_tick_.load());
+        uint32_t wrapped_diff = static_cast<uint32_t>(diff % max_tick_value);
+        pulse_width_.store(wrapped_diff);
     }
 }
