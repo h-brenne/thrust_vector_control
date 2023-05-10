@@ -117,7 +117,6 @@ plt.scatter(
     c=combined_amplitude_commands[high_amplitude_indexes],
     cmap="viridis",
 )
-plt.plot(x_vel, y_phase, color="red", linestyle="--", label="Quadratic fit")
 plt.xlabel("Velocity Command")
 plt.ylabel("Azimuth Angle [deg]")
 plt.colorbar(label="Amplitude Command")

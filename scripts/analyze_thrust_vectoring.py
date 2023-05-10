@@ -29,16 +29,16 @@ def calc_elevation_azimuth_angles(force_vectors):
     z = force_vectors[:, 2]
 
     # Calculate the elevation angle (pitch) between the XY projection and the X-axis (in degrees)
-    elevation = np.rad2deg(np.arctan2(np.sqrt(x**2 + y**2), z))
+    elevation = np.rad2deg(np.arctan2(np.sqrt(x**2 + y**2), -z))
 
     # Calculate the azimuth angle (yaw) about the Z-axis (in degrees)
-    azimuth = np.rad2deg(np.arctan2(y, -x))
+    azimuth = np.rad2deg(np.arctan2(y, x))
 
     return elevation, azimuth
 
 
 def downsample(
-    force_vectors, timestamps, sequence_length, experiment_duration, transient_duration
+    force_vectors, torque_vectors, timestamps, sequence_length, experiment_duration, transient_duration
 ):
     """Downsample the force data to a fixed number of points.
 
@@ -46,6 +46,8 @@ def downsample(
     ----------
     force_vectors : array, shape (N, 3)
         The force vectors in x, y, z components.
+    torque_vectors : array, shape (N, 3)
+        The torque vectors in x, y, z components.
     timestamps : array, shape (N,)
         The timestamps corresponding to the force vectors.
     sequence_length : int
@@ -57,13 +59,16 @@ def downsample(
 
     Returns
     -------
-    downsampled_vectors : array, shape (sequence_length, 3)
+    downsampled_force_vectors : array, shape (sequence_length, 3)
         The downsampled force vectors.
+    downsampled_torque_vectors : array, shape (sequence_length, 3)
+        The downsampled torque vectors.
     downsampled_timestamps : array, shape (sequence_length,)
         The timestamps corresponding to the downsampled force vectors."""
 
     measurement_interval = experiment_duration / sequence_length
-    downsampled_vectors = []
+    downsampled_force_vectors = []
+    downsampled_torque_vectors = []
     downsampled_timestamps = []
 
     for i in range(sequence_length):
@@ -72,11 +77,13 @@ def downsample(
 
         mask = (timestamps >= start_time) & (timestamps < end_time)
         average_force = np.mean(force_vectors[mask], axis=0)
+        average_torque = np.mean(torque_vectors[mask], axis=0)
         average_timestamp = np.mean(timestamps[mask])
-        downsampled_vectors.append(average_force)
+        downsampled_force_vectors.append(average_force)
+        downsampled_torque_vectors.append(average_torque)
         downsampled_timestamps.append(average_timestamp)
 
-    return np.array(downsampled_vectors), np.array(downsampled_timestamps)
+    return np.array(downsampled_force_vectors), np.array(downsampled_torque_vectors), np.array(downsampled_timestamps)
 
 
 @njit
@@ -164,7 +171,7 @@ def write_time_offset_to_header(force_file, force_time_offset):
         f.writelines(lines[1:])
 
 
-def process_dataset(command_file, force_file, startup_time, transient_duration):
+def process_dataset(command_file, force_file, startup_time, transient_duration, inverted):
     # Load command data
     df = pd.read_csv(command_file)
     df["datetime"] = pd.to_datetime(df["Time"])
@@ -193,9 +200,15 @@ def process_dataset(command_file, force_file, startup_time, transient_duration):
         write_time_offset_to_header(force_file, force_time_offset)
     force_offset = force_time_offset
     num_samples = len(force_df["Torque Z (N-m)"])
-    # Change from NWU to NED
+    # Change from 180 deg offset NWU to NED
+    # Would be better to do this in the ATI tool transform
+    force_df["Force Z (N)"] = -force_df["Force Z (N)"]
     force_df["Force X (N)"] = -force_df["Force X (N)"]
-    force_df["Force Y (N)"] = -force_df["Force Y (N)"]
+
+    # For the inverted rotor
+    if inverted:
+        force_df["Force Z (N)"] = -force_df["Force Z (N)"]
+        force_df["Force Y (N)"] = -force_df["Force Y (N)"]
     force_df["seconds"] = np.linspace(
         -force_offset, num_samples / 2000 - force_offset, num_samples
     )
@@ -203,7 +216,7 @@ def process_dataset(command_file, force_file, startup_time, transient_duration):
     force_df_masked = force_df[
         (force_df["seconds"] >= 0) & (force_df["seconds"] <= sequence_duration)
     ]
-    force_df = force_df_masked.ewm(span=500).mean()
+    # Extract force vectors, non filtered
     force_vectors = np.stack(
         (
             force_df_masked["Force X (N)"],
@@ -212,10 +225,21 @@ def process_dataset(command_file, force_file, startup_time, transient_duration):
         ),
         axis=1,
     )
+    torque_vectors = np.stack(
+        (
+            force_df_masked["Torque X (N-m)"],
+            force_df_masked["Torque Y (N-m)"],
+            force_df_masked["Torque Z (N-m)"],
+        ),
+        axis=1,
+    )
+    # Fiter force/torque data
+    force_df = force_df_masked.ewm(span=500).mean()
 
     # Downsample force_vectors using the computed sequence_duration and sequence_length
-    force_vectors_downsampled, force_timesteps_downsampled = downsample(
+    force_vectors_downsampled, torque_vectors_downsampled, force_timesteps_downsampled = downsample(
         force_vectors,
+        torque_vectors,
         force_df_masked["seconds"],
         sequence_length,
         sequence_duration,
@@ -226,7 +250,6 @@ def process_dataset(command_file, force_file, startup_time, transient_duration):
     elevation_angles, azimuth_angles = calc_elevation_azimuth_angles(
         force_vectors_downsampled
     )
-    force_magnitudes = np.linalg.norm(force_vectors_downsampled, axis=1)
 
     return (
         amplitude_commands,
@@ -234,7 +257,8 @@ def process_dataset(command_file, force_file, startup_time, transient_duration):
         velocity_commands,
         elevation_angles,
         azimuth_angles,
-        force_magnitudes,
+        force_vectors_downsampled,
+        torque_vectors_downsampled,
         command_df,
         force_df,
         unique_command_timestamps,

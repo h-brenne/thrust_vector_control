@@ -1,20 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-from matplotlib import cm
 from analyze_thrust_vectoring import (
     process_dataset,
     multiple_linear_regression,
     custom_linear_model,
-    quadratic_model,
+    exponential_model,
 )
 
 # Settings
 startup_time = 1.0
 transient_duration = 0.2
 # Load datasets
-command_file = "logs/large_ccw/test6.csv"
-force_file = "logs/large_ccw/force_logs/test6.csv"
+command_file = "logs/large_ccw/inverted/test_cw_1.csv"
+force_file = "logs/large_ccw/inverted/force_logs/test_cw_1.csv"
+inverted = True
 
 (
     amplitude_commands,
@@ -22,18 +22,16 @@ force_file = "logs/large_ccw/force_logs/test6.csv"
     velocity_commands,
     elevation_angles,
     azimuth_angles,
-    force_magnitudes,
+    force_vectors,
+    torque_vectors,
     command_df,
     force_df,
     unique_command_timestamps,
     force_timesteps_downsampled,
-) = process_dataset(command_file, force_file, startup_time, transient_duration)
+) = process_dataset(command_file, force_file, startup_time, transient_duration, inverted)
+force_magnitudes = np.linalg.norm(force_vectors, axis=1)
+torque_magnitudes = np.linalg.norm(torque_vectors, axis=1)
 
-
-# Thrust vector model
-# Calculate the regression coefficients from the combined data
-non_zero_amplitude_indexes = np.where(amplitude_commands > 0)
-high_amplitude_indexes = np.where(amplitude_commands > 0.15)
 # Print commands
 print("Amplitude commands: ", amplitude_commands)
 print("Phase commands: ", phase_commands)
@@ -49,6 +47,10 @@ print(
     "command time duration: ",
     command_df["seconds"].iloc[-1] - command_df["seconds"].iloc[0],
 )
+# Thrust vector model
+# Calculate the regression coefficients from the combined data
+non_zero_amplitude_indexes = np.where(amplitude_commands > 0)
+high_amplitude_indexes = np.where(amplitude_commands > 0.15)
 
 mag_slope, mag_slope2, mag_intercept = multiple_linear_regression(
     velocity_commands, amplitude_commands, force_magnitudes
@@ -58,12 +60,14 @@ amp_slope, _ = curve_fit(
     amplitude_commands[non_zero_amplitude_indexes],
     elevation_angles[non_zero_amplitude_indexes],
 )
-quad_coeffs, _ = curve_fit(
-    quadratic_model,
-    velocity_commands[high_amplitude_indexes],
-    azimuth_angles[high_amplitude_indexes],
+
+exponential_coeffs, _ = curve_fit(
+    exponential_model, velocity_commands, force_magnitudes
 )
 
+torque_coefficent, _ = curve_fit(
+    custom_linear_model, force_vectors[:, 0], torque_vectors[:, 0]
+)
 # Plot relationship between force amplitude and elevation angle
 x_amp = np.linspace(0, max(amplitude_commands), 100)
 y_elev = custom_linear_model(x_amp, amp_slope)
@@ -74,7 +78,9 @@ plt.scatter(
     c=velocity_commands[non_zero_amplitude_indexes],
     cmap="viridis",
 )
-plt.plot(x_amp, y_elev, color="red", linestyle="--", label="Linear fit")
+# Show coefficient in the label
+label = "Linear fit: " + str(round(amp_slope[0], 3)) + "x"
+plt.plot(x_amp, y_elev, color="red", linestyle="--", label=label)
 plt.xlabel("Amplitude Command")
 plt.ylabel("Elevation Angle [deg]")
 plt.colorbar(label="Velocity Command")
@@ -83,8 +89,6 @@ plt.title("Elevation Angle vs Amplitude Command")
 plt.grid()
 
 # Plot relationship between velocity command and azimuth angle
-x_vel = np.linspace(min(velocity_commands), max(velocity_commands), 100)
-y_phase = quadratic_model(x_vel, *quad_coeffs)
 plt.figure()
 plt.scatter(
     velocity_commands[high_amplitude_indexes],
@@ -92,7 +96,6 @@ plt.scatter(
     c=amplitude_commands[high_amplitude_indexes],
     cmap="viridis",
 )
-plt.plot(x_vel, y_phase, color="red", linestyle="--", label="Quadratic fit")
 plt.xlabel("Velocity Command")
 plt.ylabel("Azimuth Angle [deg]")
 plt.colorbar(label="Amplitude Command")
@@ -101,44 +104,38 @@ plt.title("Azimuth Angle vs Velocity Command")
 plt.grid()
 
 # Plot relationship between force magnitude and velocity command and amplitude command
+x_vel = np.linspace(
+    min(velocity_commands), max(velocity_commands), 100
+)
+y_force_mag = exponential_model(x_vel, *exponential_coeffs)
 plt.figure()
 plt.scatter(velocity_commands, force_magnitudes, c=amplitude_commands, cmap="viridis")
+
+
+# Show the exponential coefficients in the label
+label = "Exponential fit: " + str(round(exponential_coeffs[0], 3)) + "^(x) + " + str(round(exponential_coeffs[1], 3))
+plt.plot(x_vel, y_force_mag, color="red", linestyle="--", label=label)
 plt.xlabel("Velocity Command")
 plt.ylabel("Force Magnitude")
 plt.colorbar(label="Amplitude Command")
 plt.title("Force Magnitude vs Velocity Command and Amplitude Command")
+plt.legend()
 plt.grid()
 
-# Create a 3D scatter plot
-fig = plt.figure()
-ax = fig.add_subplot(111, projection="3d")
-
-# Scatter plot of actual data
-ax.scatter(
-    velocity_commands,
-    amplitude_commands,
-    force_magnitudes,
-    c="blue",
-    label="Actual Data",
-)
-
-# Create a grid of VelocityCommand and AmplitudeCommand values
-x_range = np.linspace(min(velocity_commands), max(velocity_commands), 100)
-y_range = np.linspace(min(amplitude_commands), max(amplitude_commands), 100)
-X, Y = np.meshgrid(x_range, y_range)
-
-# Calculate predicted force magnitudes using the multiple linear regression model
-Z = mag_slope * X + mag_slope2 * Y + mag_intercept
-
-# Surface plot of predicted force magnitudes
-surf = ax.plot_surface(X, Y, Z, cmap=cm.viridis, alpha=0.6)
-ax.set_xlabel("Velocity Command")
-ax.set_ylabel("Amplitude Command")
-ax.set_zlabel("Force Magnitude")
-ax.legend()
-plt.title(
-    "Force Magnitude vs Velocity Command and Amplitude Command (Multiple Linear Regression)"
-)
+# Plot relationship between force_magnitude and torque_vector magnitude
+x_force = np.linspace(0, max(force_magnitudes), 100)
+y_torque = custom_linear_model(x_force, torque_coefficent)
+plt.figure()
+plt.scatter(force_vectors[:, 0], torque_vectors[:, 0], c=amplitude_commands, cmap="viridis")
+# Show coefficient in the label
+label = "Linear fit: " + str(round(torque_coefficent[0], 3)) + "x"
+plt.plot(x_force, y_torque, color="red", linestyle="--", label=label)
+plt.xlabel("Force Magnitude")
+plt.ylabel("Torque Magnitude")
+plt.colorbar(label="Amplitude Command")
+plt.title("Torque Magnitude vs Force Magnitude")
+plt.legend()
+plt.grid()
 
 # Plot force data
 plt.figure()
