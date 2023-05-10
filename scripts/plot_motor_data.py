@@ -13,7 +13,7 @@ command_df = df
 
 if "Velocity" in command_df.columns:
     plt.figure()
-    plt.subplot(2,1,1)
+    plt.subplot(2, 1, 1)
     plt.plot(command_df["seconds"], command_df["Velocity"], label="Velocity")
     plt.plot(command_df["seconds"], command_df["ControlVelocity"], label="Velocity setpoint")
     plt.ylabel("hz")
@@ -21,7 +21,7 @@ if "Velocity" in command_df.columns:
     plt.title("Trajectory Tracking Performance")
     plt.grid()
 
-    plt.subplot(2,1,2)
+    plt.subplot(2, 1, 2)
     plt.plot(command_df["seconds"], command_df["Torque"], label="Motor Driver Torque Nm")
     plt.ylabel("Torque [Nm]")
     plt.xlabel("Seconds")
