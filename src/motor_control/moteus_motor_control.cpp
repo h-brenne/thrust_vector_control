@@ -71,7 +71,7 @@ void MoteusMotorControl::run(Controller *controller) {
 	double total_margin = 0.0;
 
 	std::vector<std::string> log_data{
-		"Time,Bus,ID,Mode,Velocity,Torque,ControlVelocity,VelocityCommand,AmplitudeCommand,PhaseCommand,Temperature,Voltage"};
+		"Time,ID,Bus,Mode,Velocity,Torque,ControlVelocity,VelocityCommand,AmplitudeCommand,PhaseCommand,Temperature,Voltage"};
 
 	int stop_next = false;
 
@@ -107,7 +107,7 @@ void MoteusMotorControl::run(Controller *controller) {
 						result.precision(5);
 						result << std::fixed;
 
-						result << std::chrono::system_clock::now() << ","
+						result << now_system_clock << ","
 							<< item.id << ","
 							<< item.bus << ","
 							<< static_cast<int>(item.result.mode) << ","
