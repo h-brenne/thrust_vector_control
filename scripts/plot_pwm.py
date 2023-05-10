@@ -1,8 +1,6 @@
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 
-#Import csv
 df = pd.read_csv("logs/pwm_data/pwm_controller_test.csv")
 # Data looks like this: Timestamp_us,Pin0,Pin1,Pin2,Pin3,Pin4,Pin5
 
@@ -18,12 +16,7 @@ for i in range(6):
     jitter_us.append(df['Pin{}'.format(i)].diff())
     print(jitter_us[i].describe())
 
-
-
 for i in range(6):
     plt.plot(timesteps_us, df['Pin{}'.format(i)], label='Pin{}'.format(i))
 plt.legend()
 plt.show()
-
-
-
