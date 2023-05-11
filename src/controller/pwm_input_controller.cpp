@@ -149,9 +149,9 @@ bool PWMInputController::run(const std::vector<MoteusInterface::ServoReply> &sta
     }
 
     // Map pulse widths to thrust, elevation, and azimuth
-    float min_thrust = 0.2;
-    float max_thrust = 4.0;
-    float max_elevation = 20*M_PI/180;
+    float min_thrust = 0.1;
+    float max_thrust = 8.0;
+    float max_elevation = 15*M_PI/180;
     float thrust1 = map(pulse_widths[0], 1000, 2000, min_thrust, max_thrust);
     float thrust2 = map(pulse_widths[1], 1000, 2000, min_thrust, max_thrust);
     float elevation1 = map(pulse_widths[2], 1000, 2000, 0, max_elevation);
@@ -177,15 +177,15 @@ bool PWMInputController::run(const std::vector<MoteusInterface::ServoReply> &sta
     float amplitude1 = (elevation1 * 180 / M_PI) / amplitude_a;
     float amplitude2 = (elevation2 * 180 / M_PI) / amplitude_a;
 
-    float phase_offset = M_PI/2; // Constant offset for phase = azimuth + constant
+    float phase_offset = -M_PI/2; // Constant offset for phase = azimuth + constant
     // The same phase offset is used for both rotors, as their rotation frames are opposite already
     float phase1 = azimuth1 + phase_offset;
     float phase2 = azimuth2 + phase_offset;
 
     // Assure that command mapping is between expected bounds
     float min_velocity = std::max(log((min_thrust - b)) / log(a), 0.0);; // Minimum velocity when not disarmed
-    float max_velocity = 80.0;
-    float max_amplitude = 0.4;
+    float max_velocity = 90.0;
+    float max_amplitude = 0.2;
     velocity1 = clamp(velocity1, min_velocity, max_velocity);
     velocity2 = clamp(velocity2, min_velocity, max_velocity);
     amplitude1 = clamp(amplitude1, 0.0, max_amplitude);

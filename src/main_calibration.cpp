@@ -23,10 +23,10 @@ void LockMemory()
 
 int main(int argc, char **argv) {
 
-	int main_cpu = 1;
+	int main_cpu = 3;
 	int can_cpu = 2;
 	float period_s = 0.0004;
-	std::vector<std::pair<int, int>> servo_bus_map = {{1,4}};
+	std::vector<std::pair<int, int>> servo_bus_map = {{3,3}};
 
 	float min_velocity = 40.0;
     float max_velocity = 80.0;

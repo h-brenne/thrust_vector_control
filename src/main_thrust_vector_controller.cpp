@@ -35,8 +35,8 @@ int main(int argc, char **argv) {
 	int pin_motor2_azimuth = 25;
 
 	PWMInputController controller(pin_motor1_thrust, pin_motor2_thrust, pin_motor1_elevation, 
-								  pin_motor2_elevation, pin_motor1_azimuth, pin_motor2_azimuth,
-								  /*"logs/pwm_data/test_pwm_controller.csv"*/);
+								  pin_motor2_elevation, pin_motor1_azimuth, pin_motor2_azimuth/*,
+								  "logs/pwm_data/test_pwm_controller.csv"*/);
 	MoteusMotorControl motor_controller(main_cpu, can_cpu, period_s,
                     					servo_bus_map, "logs/test.csv");
 	// Lock memory for the whole process.
