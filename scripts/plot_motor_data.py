@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-command_file = "logs/flight_test.csv"
+command_file = "logs/flight_test7.csv"
 df = pd.read_csv(command_file)
 df['datetime'] = pd.to_datetime(df['Time'])
 position = df.columns.get_loc('datetime')
@@ -28,16 +28,19 @@ for key in motor_data:
 for key, motor_df in motor_data.items():
     motor_df['time_diff'] = motor_df['datetime'].diff().dt.total_seconds()
 
-# Create a separate plot for each motor to visualize the distribution of time differences
+# Create a separate plot for each motor to visualize the control loop time
 for i, (key, motor_df) in enumerate(motor_data.items(), start=1):
     bus, motor_id = key
+    loop_time = np.abs(motor_df["time_diff"][1:])
+    loop_time_micro = loop_time * 1e6
+
     plt.figure(i)
-    plt.hist(motor_df["time_diff"][1:], bins=100)
-    plt.xlabel("Elapsed Time [s]")
-    plt.ylabel("Time Difference [s]")
-    plt.title(f'''Motor {motor_id} on Bus {bus}: Time Difference Distribution
-              Mean: {motor_df['time_diff'].mean():.5f} s, Std: {motor_df['time_diff'].std():.5f} s
-              Min: {motor_df['time_diff'].min():.5f} s, Max: {motor_df['time_diff'].max():.5f} s''')
+    plt.hist(loop_time_micro, bins=100, log=True)
+    plt.xlabel("Loop time [µs]")
+    plt.ylabel("Count (log scale)")
+    plt.title(f'''Motor {motor_id} on Bus {bus}: Main Control Loop Time Distribution
+              Mean: {loop_time_micro.mean():.2f} µs, Std: {loop_time_micro.std():.2f} µs
+              Min: {loop_time_micro.min():.2f} µs, Max: {loop_time_micro.max():.2f} µs''')
     plt.grid()
 plt.show()
 # Create a separate plot for 'ControlVelocity' and 'Velocity' for each motor
@@ -54,7 +57,7 @@ for i, (key, motor_df) in enumerate(motor_data.items(), start=1):
     plt.grid()
 
     plt.subplot(2, 1, 2)
-    plt.plot(motor_df["seconds"], motor_df["Torque"], label="Motor Driver Torque Nm")
+    plt.plot(motor_df["seconds"], motor_df["Torque"].ewm(span=1000).mean(), label="Motor Driver Torque Nm")
     plt.ylabel("Torque [Nm]")
     plt.xlabel("Seconds")
     plt.title(f"Motor {motor_id} on Bus {bus}: Torque")

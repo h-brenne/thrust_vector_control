@@ -12,9 +12,9 @@ from analyze_thrust_vectoring import (
 startup_time = 1.0
 transient_duration = 0.2
 # Load datasets
-command_file = "logs/large_ccw/inverted/test_cw_1.csv"
-force_file = "logs/large_ccw/inverted/force_logs/test_cw_1.csv"
-inverted = True
+command_file = "logs/large_ccw/2/test1.csv"
+force_file = "logs/large_ccw/2/force_logs/test1.csv"
+inverted = False
 
 (
     amplitude_commands,
@@ -66,7 +66,7 @@ exponential_coeffs, _ = curve_fit(
 )
 
 torque_coefficent, _ = curve_fit(
-    custom_linear_model, force_vectors[:, 0], torque_vectors[:, 0]
+    custom_linear_model, force_vectors[:, 2], torque_vectors[:, 2]
 )
 # Plot relationship between force amplitude and elevation angle
 x_amp = np.linspace(0, max(amplitude_commands), 100)
@@ -113,7 +113,7 @@ plt.scatter(velocity_commands, force_magnitudes, c=amplitude_commands, cmap="vir
 
 
 # Show the exponential coefficients in the label
-label = "Exponential fit: " + str(round(exponential_coeffs[0], 3)) + "^(x) + " + str(round(exponential_coeffs[1], 3))
+label = "Exponential fit: " + str(round(exponential_coeffs[0], 4)) + "^(x)"
 plt.plot(x_vel, y_force_mag, color="red", linestyle="--", label=label)
 plt.xlabel("Velocity Command")
 plt.ylabel("Force Magnitude")
@@ -126,9 +126,9 @@ plt.grid()
 x_force = np.linspace(0, max(force_magnitudes), 100)
 y_torque = custom_linear_model(x_force, torque_coefficent)
 plt.figure()
-plt.scatter(force_vectors[:, 0], torque_vectors[:, 0], c=amplitude_commands, cmap="viridis")
+plt.scatter(abs(force_vectors[:, 2]), abs(torque_vectors[:, 2]), c=amplitude_commands, cmap="viridis")
 # Show coefficient in the label
-label = "Linear fit: " + str(round(torque_coefficent[0], 3)) + "x"
+label = "Linear fit: " + str(round(torque_coefficent[0], 4)) + "x"
 plt.plot(x_force, y_torque, color="red", linestyle="--", label=label)
 plt.xlabel("Force Magnitude")
 plt.ylabel("Torque Magnitude")
