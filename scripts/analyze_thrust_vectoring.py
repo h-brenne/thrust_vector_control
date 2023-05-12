@@ -152,6 +152,26 @@ def read_time_offset_from_header(force_file):
     return force_time_offset
 
 
+def read_frequency_from_header(force_file):
+    with open(force_file, 'r') as f:
+        header = f.readline()
+    frequency_match = re.search(r'Frequency\s*=\s*(\d+)', header)
+    if frequency_match:
+        return int(frequency_match.group(1))
+    else:
+        raise ValueError("Frequency not found in header")
+
+
+def read_averaging_level_from_header(force_file):
+    with open(force_file, 'r') as f:
+        header = f.readline()
+    averaging_match = re.search(r'Averaging\s*Level\s*=\s*(\d+)', header)
+    if averaging_match:
+        return int(averaging_match.group(1))
+    else:
+        raise ValueError("Averaging Level not found in header")
+
+
 def write_time_offset_to_header(force_file, force_time_offset):
     with open(force_file, "r") as f:
         lines = f.readlines()
@@ -195,6 +215,8 @@ def process_dataset(command_file, force_file, startup_time, transient_duration, 
     # Load force data
     force_df = pd.read_csv(force_file)
     force_time_offset = read_time_offset_from_header(force_file)
+    frequency = read_frequency_from_header(force_file)
+    averaging_level = read_averaging_level_from_header(force_file)
     if force_time_offset == 0.0:
         # Write default force_time_offset to the header
         write_time_offset_to_header(force_file, force_time_offset)
@@ -210,7 +232,7 @@ def process_dataset(command_file, force_file, startup_time, transient_duration, 
         force_df["Force Z (N)"] = -force_df["Force Z (N)"]
         force_df["Force Y (N)"] = -force_df["Force Y (N)"]
     force_df["seconds"] = np.linspace(
-        -force_offset, num_samples / 2000 - force_offset, num_samples
+        -force_offset, num_samples / (frequency/averaging_level) - force_offset, num_samples
     )
     # Filter force data
     force_df_masked = force_df[
@@ -234,7 +256,7 @@ def process_dataset(command_file, force_file, startup_time, transient_duration, 
         axis=1,
     )
     # Fiter force/torque data
-    force_df = force_df_masked.ewm(span=500).mean()
+    force_df = force_df_masked.ewm(span=10).mean()
 
     # Downsample force_vectors using the computed sequence_duration and sequence_length
     force_vectors_downsampled, torque_vectors_downsampled, force_timesteps_downsampled = downsample(

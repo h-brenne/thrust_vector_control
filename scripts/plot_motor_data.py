@@ -57,7 +57,7 @@ for i, (key, motor_df) in enumerate(motor_data.items(), start=1):
     plt.grid()
 
     plt.subplot(2, 1, 2)
-    plt.plot(motor_df["seconds"], motor_df["Torque"].ewm(span=1000).mean(), label="Motor Driver Torque Nm")
+    plt.plot(motor_df["seconds"], motor_df["Torque"].ewm(span=1).mean(), label="Motor Driver Torque Nm")
     plt.ylabel("Torque [Nm]")
     plt.xlabel("Seconds")
     plt.title(f"Motor {motor_id} on Bus {bus}: Torque")

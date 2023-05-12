@@ -9,11 +9,13 @@ from analyze_thrust_vectoring import (
 )
 
 # Settings
+save_plot = False
+folder = "logs/largeccw_torqueff/"
 startup_time = 1.0
 transient_duration = 0.2
 # Load datasets
-command_file = "logs/large_ccw/2/test1.csv"
-force_file = "logs/large_ccw/2/force_logs/test1.csv"
+command_file = "logs/largeccw_torqueff/test5.csv"
+force_file = "logs/largeccw_torqueff/force_logs/test5.csv"
 inverted = False
 
 (
@@ -188,4 +190,9 @@ if "Velocity" in command_df.columns:
 
     plt.grid()
 
-plt.show()
+plt.tight_layout()
+if save_plot:
+    for i in plt.get_fignums():
+        plt.figure(i).savefig(folder + str(i) + '.pdf', bbox_inches="tight")
+else:
+    plt.show()

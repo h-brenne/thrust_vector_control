@@ -226,6 +226,6 @@ if "Velocity" in command_df.columns:
 plt.tight_layout()
 if save_plot:
     for i in plt.get_fignums():
-        plt.figure(i).savefig(folder + str(i) + '.pdf', bbox_inches = "tight")
+        plt.figure(i).savefig(folder + str(i) + '.pdf', bbox_inches="tight")
 else:
     plt.show()
