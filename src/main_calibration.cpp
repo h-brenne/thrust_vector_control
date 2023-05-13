@@ -25,14 +25,14 @@ int main(int argc, char **argv) {
 
 	int main_cpu = 3;
 	int can_cpu = 2;
-	float period_s = 0.0004;
+	float period_s = 0.0003;
 	std::vector<std::pair<int, int>> servo_bus_map = {{3,3}};
 
-	float min_velocity = 40.0;
+	float min_velocity = 50.0;
     float max_velocity = 80.0;
-    float step_velocity = 10.0;
+    float step_velocity = 5.0;
     float min_amplitude = 0.0;
-    float max_amplitude = 0.38;
+    float max_amplitude = 0.35;
     float step_amplitude = 0.08;
     float min_phase = 0.0;
     float max_phase = 0.0;
@@ -46,13 +46,16 @@ int main(int argc, char **argv) {
                                  min_amplitude, max_amplitude, step_amplitude,
                                  min_phase, max_phase, step_phase, enable_dual_amplitude_steps,
                                  velocities, amplitudes, phases);
-
+	// Scale amplitudes by the velocity (Only for torque_ff mode!!)
+	//for (size_t i = 0; i < velocities.size(); ++i) {
+	//	amplitudes[i] *= velocities[i];
+	//}
 	for (size_t i = 0; i < velocities.size(); ++i) {
         std::cout << "Velocity: " << velocities[i]
                   << ", Amplitude: " << amplitudes[i]
                   << ", Phase: " << phases[i] << std::endl;
     }
-	float step_length = 1.0;
+	float step_length = 1.5;
 
 	float experiment_length_seconds = step_length * velocities.size();
 	std::cout << "Experiment length: " << experiment_length_seconds << std::endl;

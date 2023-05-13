@@ -149,8 +149,8 @@ bool PWMInputController::run(const std::vector<MoteusInterface::ServoReply> &sta
     }
 
     // Map pulse widths to thrust, elevation, and azimuth
-    float min_thrust = 0.1;
-    float max_thrust = 8.0;
+    float min_thrust = 0.5;
+    float max_thrust = 10.0;
     float max_elevation = 15*M_PI/180;
     float thrust1 = map(pulse_widths[0], 1000, 2000, min_thrust, max_thrust);
     float thrust2 = map(pulse_widths[1], 1000, 2000, min_thrust, max_thrust);
@@ -167,23 +167,22 @@ bool PWMInputController::run(const std::vector<MoteusInterface::ServoReply> &sta
     azimuth1 = clamp(azimuth1, -M_PI, M_PI);
     azimuth2 = clamp(azimuth2, -M_PI, M_PI);
 
-    float a = 1.027, b = -1.198; // Coefficients for force = a^velocity + b
+    float a = 0.0015; // Coefficients for force = a*velocity^2 
     // Assure that velocity is always positive, motor driver handles direction
-    float velocity1 = std::max(log((thrust1 - b)) / log(a), 0.0);
-    float velocity2 = std::max(log((thrust2 - b)) / log(a), 0.0);
+    float velocity1 = std::sqrt(thrust1/a);
+    float velocity2 = std::sqrt(thrust2/a);
 
-
-    float amplitude_a = 77.526; // Coefficient for elevation = a * amplitude
+    float amplitude_a = 65.0; // Coefficient for elevation = a * amplitude
     float amplitude1 = (elevation1 * 180 / M_PI) / amplitude_a;
     float amplitude2 = (elevation2 * 180 / M_PI) / amplitude_a;
 
-    float phase_offset = -M_PI/2; // Constant offset for phase = azimuth + constant
+    float phase_offset = M_PI/2; // Constant offset for phase = azimuth + constant
     // The same phase offset is used for both rotors, as their rotation frames are opposite already
     float phase1 = azimuth1 + phase_offset;
-    float phase2 = azimuth2 + phase_offset;
+    float phase2 = -azimuth2 + phase_offset;
 
     // Assure that command mapping is between expected bounds
-    float min_velocity = std::max(log((min_thrust - b)) / log(a), 0.0);; // Minimum velocity when not disarmed
+    float min_velocity = std::sqrt(min_thrust/a); // Minimum velocity when not disarmed
     float max_velocity = 90.0;
     float max_amplitude = 0.2;
     velocity1 = clamp(velocity1, min_velocity, max_velocity);
