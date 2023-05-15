@@ -20,7 +20,7 @@ def quadratic_model(x, a, b, c):
 
 
 def exponential_model(x, a):
-    return a**x
+    return a*x**2
 
 
 def calc_elevation_azimuth_angles(force_vectors):

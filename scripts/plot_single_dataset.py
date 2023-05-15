@@ -10,13 +10,13 @@ from analyze_thrust_vectoring import (
 
 # Settings
 save_plot = False
-folder = "logs/largeccw_torqueff/"
+folder = "logs/large_ccw/3/"
 startup_time = 1.0
 transient_duration = 0.2
 # Load datasets
-command_file = "logs/largeccw_torqueff/test5.csv"
-force_file = "logs/largeccw_torqueff/force_logs/test5.csv"
-inverted = False
+command_file = "logs/large_ccw/inverted/test_buffering_3.csv"
+force_file = "logs/large_ccw/inverted/force_logs/test_buffering_3.csv"
+inverted = True
 
 (
     amplitude_commands,
@@ -67,8 +67,11 @@ exponential_coeffs, _ = curve_fit(
     exponential_model, velocity_commands, force_magnitudes
 )
 
-torque_coefficent, _ = curve_fit(
+torque_coefficent_z, _ = curve_fit(
     custom_linear_model, force_vectors[:, 2], torque_vectors[:, 2]
+)
+torque_coefficent_x, _ = curve_fit(
+    custom_linear_model, force_vectors[:, 1], torque_vectors[:, 0]
 )
 # Plot relationship between force amplitude and elevation angle
 x_amp = np.linspace(0, max(amplitude_commands), 100)
@@ -85,7 +88,7 @@ label = "Linear fit: " + str(round(amp_slope[0], 3)) + "x"
 plt.plot(x_amp, y_elev, color="red", linestyle="--", label=label)
 plt.xlabel("Amplitude Command")
 plt.ylabel("Elevation Angle [deg]")
-plt.colorbar(label="Velocity Command")
+plt.colorbar(label="Velocity Command [Hz]")
 plt.legend()
 plt.title("Elevation Angle vs Amplitude Command")
 plt.grid()
@@ -98,7 +101,7 @@ plt.scatter(
     c=amplitude_commands[high_amplitude_indexes],
     cmap="viridis",
 )
-plt.xlabel("Velocity Command")
+plt.xlabel("Velocity Command [Hz]")
 plt.ylabel("Azimuth Angle [deg]")
 plt.colorbar(label="Amplitude Command")
 plt.legend()
@@ -117,25 +120,32 @@ plt.scatter(velocity_commands, force_magnitudes, c=amplitude_commands, cmap="vir
 # Show the exponential coefficients in the label
 label = "Exponential fit: " + str(round(exponential_coeffs[0], 4)) + "^(x)"
 plt.plot(x_vel, y_force_mag, color="red", linestyle="--", label=label)
-plt.xlabel("Velocity Command")
-plt.ylabel("Force Magnitude")
+plt.xlabel("Velocity Command [Hz]")
+plt.ylabel("Force Magnitude [N]")
 plt.colorbar(label="Amplitude Command")
 plt.title("Force Magnitude vs Velocity Command and Amplitude Command")
 plt.legend()
 plt.grid()
 
-# Plot relationship between force_magnitude and torque_vector magnitude
-x_force = np.linspace(0, max(force_magnitudes), 100)
-y_torque = custom_linear_model(x_force, torque_coefficent)
+# Plot relationship between force and torque
+x_force_z = np.linspace(0, force_vectors[np.argmax(abs(force_vectors[:, 2])), 2], 100)
+y_torque_z = custom_linear_model(x_force_z, torque_coefficent_z)
+
+x_force_x = np.linspace(0, force_vectors[np.argmax(abs(force_vectors[:, 1])), 1], 100)
+y_torque_x = custom_linear_model(x_force_x, torque_coefficent_x)
 plt.figure()
-plt.scatter(abs(force_vectors[:, 2]), abs(torque_vectors[:, 2]), c=amplitude_commands, cmap="viridis")
+plt.gca().invert_xaxis()
+plt.gca().invert_yaxis()
+plt.scatter(force_vectors[:, 2], torque_vectors[:, 2], label="Force Z, Torque Z", color="red")
+plt.scatter(force_vectors[:, 1], torque_vectors[:, 0], label="Force Y, Torque X", color="green")
 # Show coefficient in the label
-label = "Linear fit: " + str(round(torque_coefficent[0], 4)) + "x"
-plt.plot(x_force, y_torque, color="red", linestyle="--", label=label)
-plt.xlabel("Force Magnitude")
-plt.ylabel("Torque Magnitude")
-plt.colorbar(label="Amplitude Command")
-plt.title("Torque Magnitude vs Force Magnitude")
+label_z = "Linear fit: " + str(round(torque_coefficent_z[0], 4)) + "x"
+plt.plot(x_force_z, y_torque_z, color="red", linestyle="--", label=label_z)
+label_x = "Linear fit: " + str(round(torque_coefficent_x[0], 4)) + "x"
+plt.plot(x_force_x, y_torque_x, color="green", linestyle="--", label=label_x)
+plt.xlabel("Force [N]")
+plt.ylabel("Torque [Nm]")
+plt.title("Torque vs Force")
 plt.legend()
 plt.grid()
 
