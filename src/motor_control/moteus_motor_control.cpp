@@ -25,9 +25,18 @@ MoteusMotorControl::MoteusMotorControl(const int main_cpu, const int can_cpu, co
 	, period_s_(period_s)
 	, servo_bus_map_(servo_bus_map)
 	, moteus_interface_{get_initialization_options(can_cpu)}
-	, log_file_(log_file)
 	{
 		moteus::ConfigureRealtime(main_cpu);
+		// Get current time
+		auto now_system_clock = std::chrono::system_clock::now();
+		std::time_t now_time = std::chrono::system_clock::to_time_t(now_system_clock);
+
+		// Format time into a string
+		std::stringstream ss;
+		ss << std::put_time(std::localtime(&now_time), "%Y-%m-%d-%H-%M-%S"); // The time format can be adjusted to your needs
+
+		// Append time string to filename
+		log_file_ = log_file + "-" + ss.str() + ".csv";
 		
 }
 
