@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
 								  pin_motor2_elevation, pin_motor1_azimuth, pin_motor2_azimuth/*,
 								  "logs/pwm_data/test_pwm_controller.csv"*/);
 	MoteusMotorControl motor_controller(main_cpu, can_cpu, period_s,
-                    					servo_bus_map, "logs/test.csv");
+                    					servo_bus_map, "logs/flight");
 	// Lock memory for the whole process.
 	LockMemory();
 	motor_controller.run(&controller);
