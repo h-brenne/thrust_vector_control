@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-command_file = "logs/flight-2023-05-13-16-30-49.csv"
+command_file = "logs/flight-2023-05-15-21-42-14.csv"
 df = pd.read_csv(command_file)
 df['datetime'] = pd.to_datetime(df['Time'])
 position = df.columns.get_loc('datetime')

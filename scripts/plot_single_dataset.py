@@ -9,7 +9,7 @@ from analyze_thrust_vectoring import (
 )
 
 # Settings
-save_plot = False
+save_plot = True
 folder = "logs/large_ccw/3/"
 startup_time = 1.0
 transient_duration = 0.2
@@ -118,7 +118,7 @@ plt.scatter(velocity_commands, force_magnitudes, c=amplitude_commands, cmap="vir
 
 
 # Show the exponential coefficients in the label
-label = "Exponential fit: " + str(round(exponential_coeffs[0], 4)) + "^(x)"
+label = "Exponential fit: " + str(round(exponential_coeffs[0], 4)) + "(x)^2"
 plt.plot(x_vel, y_force_mag, color="red", linestyle="--", label=label)
 plt.xlabel("Velocity Command [Hz]")
 plt.ylabel("Force Magnitude [N]")
@@ -204,5 +204,7 @@ plt.tight_layout()
 if save_plot:
     for i in plt.get_fignums():
         plt.figure(i).savefig(folder + str(i) + '.pdf', bbox_inches="tight")
+        plt.figure(i).savefig(folder + str(i) + '.png', bbox_inches="tight")
+
 else:
     plt.show()
