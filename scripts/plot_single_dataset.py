@@ -9,8 +9,8 @@ from analyze_thrust_vectoring import (
 )
 
 # Settings
-save_plot = True
-folder = "logs/large_ccw/3/"
+save_plot = False
+folder = "logs/large_ccw/inverted/"
 startup_time = 1.0
 transient_duration = 0.2
 # Load datasets
@@ -71,7 +71,7 @@ torque_coefficent_z, _ = curve_fit(
     custom_linear_model, force_vectors[:, 2], torque_vectors[:, 2]
 )
 torque_coefficent_x, _ = curve_fit(
-    custom_linear_model, force_vectors[:, 1], torque_vectors[:, 0]
+    custom_linear_model, force_vectors[:, 1], torque_vectors[:, 1]
 )
 # Plot relationship between force amplitude and elevation angle
 x_amp = np.linspace(0, max(amplitude_commands), 100)
@@ -118,7 +118,7 @@ plt.scatter(velocity_commands, force_magnitudes, c=amplitude_commands, cmap="vir
 
 
 # Show the exponential coefficients in the label
-label = "Exponential fit: " + str(round(exponential_coeffs[0], 4)) + "(x)^2"
+label = "Quadratic fit: " + str(round(exponential_coeffs[0], 4)) + "(x)^2"
 plt.plot(x_vel, y_force_mag, color="red", linestyle="--", label=label)
 plt.xlabel("Velocity Command [Hz]")
 plt.ylabel("Force Magnitude [N]")
@@ -137,7 +137,7 @@ plt.figure()
 plt.gca().invert_xaxis()
 plt.gca().invert_yaxis()
 plt.scatter(force_vectors[:, 2], torque_vectors[:, 2], label="Force Z, Torque Z", color="red")
-plt.scatter(force_vectors[:, 1], torque_vectors[:, 0], label="Force Y, Torque X", color="green")
+plt.scatter(force_vectors[:, 1], torque_vectors[:, 1], label="Force Y, Torque Y", color="green")
 # Show coefficient in the label
 label_z = "Linear fit: " + str(round(torque_coefficent_z[0], 4)) + "x"
 plt.plot(x_force_z, y_torque_z, color="red", linestyle="--", label=label_z)

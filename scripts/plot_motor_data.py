@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-command_file = "logs/flight-2023-05-15-21-42-14.csv"
+command_file = "logs/flight-2023-05-16-01-04-38.csv"
 df = pd.read_csv(command_file)
 df['datetime'] = pd.to_datetime(df['Time'])
 position = df.columns.get_loc('datetime')
@@ -38,7 +38,7 @@ for i, (key, motor_df) in enumerate(motor_data.items(), start=1):
     plt.hist(loop_time_micro, bins=100, log=True)
     plt.xlabel("Loop time [µs]")
     plt.ylabel("Count (log scale)")
-    plt.title(f'''Motor {motor_id} on Bus {bus}: Main Control Loop Time Distribution
+    plt.title(f'''Main Control Loop Time Distribution
               Mean: {loop_time_micro.mean():.2f} µs, Std: {loop_time_micro.std():.2f} µs
               Min: {loop_time_micro.min():.2f} µs, Max: {loop_time_micro.max():.2f} µs''')
     plt.grid()
