@@ -10,12 +10,12 @@ from analyze_thrust_vectoring import (
 
 # Settings
 save_plot = False
-folder = "logs/largeccw_torqueff/"
+folder = "logs/large_rotor_torqueff/"
 startup_time = 1.0
 transient_duration = 0.2
 # Load datasets
-command_file = "logs/largeccw_torqueff/test5.csv"
-force_file = "logs/largeccw_torqueff/force_logs/test5.csv"
+command_file = "logs/large_rotor_torqueff/test5.csv"
+force_file = "logs/large_rotor_torqueff/force_logs/test5.csv"
 inverted = False
 
 (
@@ -53,7 +53,8 @@ print(
 # Calculate the regression coefficients from the combined data
 
 # Mask out the data points where the velocity is 50 (Bad data)
-amplitude_commands = amplitude_commands[np.where(velocity_commands != 50)]
+# Multiply by 3 due to the torque ff scale ussed
+amplitude_commands = 3*amplitude_commands[np.where(velocity_commands != 50)]
 elevation_angles = elevation_angles[np.where(velocity_commands != 50)]
 force_magnitudes = force_magnitudes[np.where(velocity_commands != 50)]
 velocity_commands = velocity_commands[np.where(velocity_commands != 50)]
@@ -96,7 +97,7 @@ torque_coefficent, _ = curve_fit(
 
 
 # Plot relationship between force amplitude and elevation angle
-plt.figure()
+plt.figure(figsize=(5, 2))
 plt.scatter(
     amplitude_commands[non_zero_amplitude_indexes],
     elevation_angles[non_zero_amplitude_indexes],
@@ -108,11 +109,11 @@ for i in range(len(amp_slopes)):
     y_elev = custom_linear_model(x_amp, amp_slopes[i])
     label = "Linear fit: " + str(round(amp_slopes[i], 3)) + "x"
     plt.plot(x_amp, custom_linear_model(x_amp, amp_slopes[i]), color="red", linestyle="--", linewidth=1, label=label)
-plt.xlabel("Amplitude Command")
+plt.xlabel("Torque Feedforward Amplitude Command [Nm]")
 plt.ylabel("Elevation Angle [deg]")
-plt.colorbar(label="Velocity Command")
-plt.legend()
-plt.title("Elevation Angle vs Amplitude Command")
+plt.colorbar(label="Velocity Command [Hz]")
+#plt.legend()
+#plt.title("Elevation Angle vs Amplitude Command")
 plt.grid()
 
 # Plot relationship between amp_slope and velocity

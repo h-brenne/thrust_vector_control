@@ -3,6 +3,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from collections import Counter
 
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "serif",
+    "font.serif": ["Palatino"],
+    'font.size' : 16,
+})
+
+# Settings plot
+save_plot = True
+folder = "logs/pwm_data/"
+
 df = pd.read_csv("logs/pwm_data/pwm_controller_test.csv")
 # Data looks like this: Timestamp_us,Pin0,Pin1,Pin2,Pin3,Pin4,Pin5
 
@@ -31,7 +42,15 @@ plt.figure()
 plt.bar(counts.keys(), counts.values(), log=True)
 plt.xlabel("Jitter [µs]")
 plt.ylabel("Count (log scale)")
-plt.title(f'''RPi PWM pulse width jitter.
+plt.title(f'''PWM pulse width measurement jitter.
               Mean: {pin_diff.mean():.2f} µs, Std: {pin_diff.std():.2f} µs
               Max: {pin_diff.max():.2f} µs''')
-plt.show()
+
+plt.tight_layout()
+if save_plot:
+    for i in plt.get_fignums():
+        plt.figure(i).savefig(folder + str(i) + '.pdf', bbox_inches="tight")
+        plt.figure(i).savefig(folder + str(i) + '.png', bbox_inches="tight")
+
+else:
+    plt.show()

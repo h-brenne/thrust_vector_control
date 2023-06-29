@@ -28,7 +28,7 @@ def calc_elevation_azimuth_angles(force_vectors):
     y = force_vectors[:, 1]
     z = force_vectors[:, 2]
 
-    # Calculate the elevation angle (pitch) between the XY projection and the X-axis (in degrees)
+    # Calculate the elevation angle (pitch) between the XY projection and the x-axis (in degrees)
     elevation = np.rad2deg(np.arctan2(np.sqrt(x**2 + y**2), -z))
 
     # Calculate the azimuth angle (yaw) about the Z-axis (in degrees)
@@ -225,12 +225,15 @@ def process_dataset(command_file, force_file, startup_time, transient_duration, 
     # Change from 180 deg offset NWU to NED
     # Would be better to do this in the ATI tool transform
     force_df["Force Z (N)"] = -force_df["Force Z (N)"]
-    force_df["Force X (N)"] = -force_df["Force X (N)"]
-
-    # For the inverted rotor
+    force_df["Torque Z (N-m)"] = -force_df["Torque Z (N-m)"]
+    force_df["Force Y (N)"] = -force_df["Force Y (N)"]
+    force_df["Torque Y (N-m)"] = -force_df["Torque Y (N-m)"]
+    # For the inverted rotor, flip force and torque back again, as the rotor is pushing
     if inverted:
         force_df["Force Z (N)"] = -force_df["Force Z (N)"]
+        force_df["Torque Z (N-m)"] = -force_df["Torque Z (N-m)"]
         force_df["Force Y (N)"] = -force_df["Force Y (N)"]
+        force_df["Torque Y (N-m)"] = -force_df["Torque Y (N-m)"]
     force_df["seconds"] = np.linspace(
         -force_offset, num_samples / (frequency/averaging_level) - force_offset, num_samples
     )
@@ -256,7 +259,7 @@ def process_dataset(command_file, force_file, startup_time, transient_duration, 
         axis=1,
     )
     # Fiter force/torque data
-    force_df = force_df_masked.ewm(span=10).mean()
+    force_df = force_df_masked.ewm(span=1).mean()
 
     # Downsample force_vectors using the computed sequence_duration and sequence_length
     force_vectors_downsampled, torque_vectors_downsampled, force_timesteps_downsampled = downsample(

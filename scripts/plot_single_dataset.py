@@ -4,18 +4,26 @@ from scipy.optimize import curve_fit
 from analyze_thrust_vectoring import (
     process_dataset,
     multiple_linear_regression,
-    custom_linear_model,
+    custom_linear_model, 
     exponential_model,
 )
-
+# Enable LaTeX style
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "serif",
+    "font.serif": ["Palatino"], 
+    'font.size' : 15,
+})
 # Settings
 save_plot = False
-folder = "logs/large_ccw/inverted/"
+folder = "logs/large_rotor/normal/"
 startup_time = 1.0
 transient_duration = 0.2
 # Load datasets
-command_file = "logs/large_ccw/inverted/test_buffering_3.csv"
-force_file = "logs/large_ccw/inverted/force_logs/test_buffering_3.csv"
+#command_file = "logs/large_rotor/normal/test_1.csv"
+#force_file = "logs/large_rotor/normal/force_logs/test_1.csv"
+command_file = "logs/large_rotor/inverted/test_1.csv"
+force_file = "logs/large_rotor/inverted/force_logs/test_1.csv"
 inverted = True
 
 (
@@ -84,13 +92,14 @@ plt.scatter(
     cmap="viridis",
 )
 # Show coefficient in the label
-label = "Linear fit: " + str(round(amp_slope[0], 3)) + "x"
+label = "Linear fit: $" + str(round(amp_slope[0], 3)) + "x$"
 plt.plot(x_amp, y_elev, color="red", linestyle="--", label=label)
 plt.xlabel("Amplitude Command")
 plt.ylabel("Elevation Angle [deg]")
 plt.colorbar(label="Velocity Command [Hz]")
 plt.legend()
-plt.title("Elevation Angle vs Amplitude Command")
+#plt.title("Elevation Angle vs Amplitude Command")
+plt.xticks(np.arange(0, 0.36, 0.05))
 plt.grid()
 
 # Plot relationship between velocity command and azimuth angle
@@ -104,8 +113,10 @@ plt.scatter(
 plt.xlabel("Velocity Command [Hz]")
 plt.ylabel("Azimuth Angle [deg]")
 plt.colorbar(label="Amplitude Command")
-plt.legend()
-plt.title("Azimuth Angle vs Velocity Command")
+#plt.title("Azimuth Angle vs Velocity Command")
+#plt.yticks(np.arange(-60, -111, -10))
+#plt.ylim(-60, -111)
+plt.xticks(np.arange(40, 81, 10))
 plt.grid()
 
 # Plot relationship between force magnitude and velocity command and amplitude command
@@ -118,12 +129,13 @@ plt.scatter(velocity_commands, force_magnitudes, c=amplitude_commands, cmap="vir
 
 
 # Show the exponential coefficients in the label
-label = "Quadratic fit: " + str(round(exponential_coeffs[0], 4)) + "(x)^2"
+label = "Quadratic fit: $" + str(round(exponential_coeffs[0], 4)) + "x^2$"
 plt.plot(x_vel, y_force_mag, color="red", linestyle="--", label=label)
 plt.xlabel("Velocity Command [Hz]")
 plt.ylabel("Force Magnitude [N]")
 plt.colorbar(label="Amplitude Command")
-plt.title("Force Magnitude vs Velocity Command and Amplitude Command")
+#plt.title("Force Magnitude vs Velocity Command and Amplitude Command")
+plt.xticks(np.arange(40, 81, 10))
 plt.legend()
 plt.grid()
 
@@ -131,36 +143,44 @@ plt.grid()
 x_force_z = np.linspace(0, force_vectors[np.argmax(abs(force_vectors[:, 2])), 2], 100)
 y_torque_z = custom_linear_model(x_force_z, torque_coefficent_z)
 
-x_force_x = np.linspace(0, force_vectors[np.argmax(abs(force_vectors[:, 1])), 1], 100)
-y_torque_x = custom_linear_model(x_force_x, torque_coefficent_x)
+#x_force_x = np.linspace(0, force_vectors[np.argmax(abs(force_vectors[:, 1])), 1], 100)
+#y_torque_x = custom_linear_model(x_force_x, torque_coefficent_x)
 plt.figure()
 plt.gca().invert_xaxis()
 plt.gca().invert_yaxis()
 plt.scatter(force_vectors[:, 2], torque_vectors[:, 2], label="Force Z, Torque Z", color="red")
-plt.scatter(force_vectors[:, 1], torque_vectors[:, 1], label="Force Y, Torque Y", color="green")
+#plt.scatter(force_vectors[:, 1], torque_vectors[:, 1], label="Force Y, Torque Y", color="green")
 # Show coefficient in the label
-label_z = "Linear fit: " + str(round(torque_coefficent_z[0], 4)) + "x"
+label_z = "Linear fit: $" + str(round(torque_coefficent_z[0], 4)) + "x$"
 plt.plot(x_force_z, y_torque_z, color="red", linestyle="--", label=label_z)
-label_x = "Linear fit: " + str(round(torque_coefficent_x[0], 4)) + "x"
-plt.plot(x_force_x, y_torque_x, color="green", linestyle="--", label=label_x)
+#label_x = "Linear fit: " + str(round(torque_coefficent_x[0], 4)) + "x"
+#plt.plot(x_force_x, y_torque_x, color="green", linestyle="--", label=label_x)
 plt.xlabel("Force [N]")
 plt.ylabel("Torque [Nm]")
-plt.title("Torque vs Force")
+#plt.title("Torque vs Force")
 plt.legend()
 plt.grid()
 
 # Plot force data
 plt.figure()
-plt.subplot(2, 1, 1)
+force_df_smooth = force_df.ewm(span=20).mean()
 force_magnitude_full = np.linalg.norm(
     force_df[["Force X (N)", "Force Y (N)", "Force Z (N)"]], axis=1
 )
-plt.plot(force_df["seconds"], force_magnitude_full, label="Thrust magnitude")
-plt.plot(force_df["seconds"], force_df["Force X (N)"], label="Force X (N)")
-plt.plot(force_df["seconds"], force_df["Force Y (N)"], label="Force Y (N)")
-plt.plot(force_df["seconds"], force_df["Force Z (N)"], label="Force Z (N)")
-plt.ylabel("Force [N]")
+force_magnitude_full_smooth = np.linalg.norm(
+    force_df_smooth[["Force X (N)", "Force Y (N)", "Force Z (N)"]], axis=1
+)
 
+plt.plot(force_df["seconds"], force_magnitude_full, label="Thrust magnitude", color="C0", alpha=0.4)
+plt.plot(force_df_smooth["seconds"], force_magnitude_full_smooth, color="C0")
+plt.plot(force_df["seconds"], force_df["Force X (N)"], label="Force X (N)", color="C1", alpha=0.4)
+plt.plot(force_df_smooth["seconds"], force_df_smooth["Force X (N)"], color="C1")
+plt.plot(force_df["seconds"], force_df["Force Y (N)"], label="Force Y (N)", color="C2", alpha=0.4)
+plt.plot(force_df_smooth["seconds"], force_df_smooth["Force Y (N)"], color="C2")
+plt.plot(force_df["seconds"], force_df["Force Z (N)"], label="Force Z (N)", color="C3", alpha=0.4)
+plt.plot(force_df_smooth["seconds"], force_df_smooth["Force Z (N)"], color="C3")
+plt.ylabel("Force [N]")
+plt.xlabel("Seconds")
 # Draw vertical lines indicating the start of each time section that is averaged
 for t in unique_command_timestamps:
     plt.axvline(x=t, color="gray", linestyle="--", alpha=0.5)
@@ -169,7 +189,7 @@ for t in force_timesteps_downsampled:
 
 plt.grid()
 plt.legend()
-plt.subplot(2, 1, 2)
+plt.figure()
 plt.plot(force_df["seconds"], force_df["Torque X (N-m)"], label="Torque X (N-m)")
 plt.plot(force_df["seconds"], force_df["Torque Y (N-m)"], label="Torque Y (N-m)")
 plt.plot(force_df["seconds"], force_df["Torque Z (N-m)"], label="Torque Z (N-m)")

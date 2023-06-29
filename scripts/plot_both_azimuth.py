@@ -3,15 +3,21 @@ import matplotlib.pyplot as plt
 from analyze_thrust_vectoring import (
     process_dataset,
 )
-
+# Enable LaTeX style
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "serif",
+    "font.serif": ["Palatino"],
+    'font.size' : 12,
+})
 # Settings
 save_plot = False
 folder = "logs/large_ccw/3/"
 startup_time = 1.0
 transient_duration = 0.2
 # Load datasets
-command_file = "logs/large_ccw/inverted/test_buffering_3.csv"
-force_file = "logs/large_ccw/inverted/force_logs/test_buffering_3.csv"
+command_file = "logs/large_rotor/inverted/test_1.csv"
+force_file = "logs/large_rotor/inverted/force_logs/test_1.csv"
 inverted = True
 
 (
@@ -30,12 +36,12 @@ inverted = True
 
 # Settings
 save_plot = False
-folder = "logs/large_ccw/3/"
+folder = "logs/large_rotor/"
 startup_time = 1.0
 transient_duration = 0.2
 # Load datasets
-command_file = "logs/large_ccw/3/test_buffering.csv"
-force_file = "logs/large_ccw/3/force_logs/test_buffering.csv"
+command_file = "logs/large_rotor/normal/test_1.csv"
+force_file = "logs/large_rotor/normal/force_logs/test_1.csv"
 inverted = False
 
 (
@@ -61,7 +67,7 @@ high_amplitude_indexes2 = np.where(amplitude_commands2 > 0.15)
 plt.figure()
 plt.scatter(
     velocity_commands[high_amplitude_indexes],
-    azimuth_angles[high_amplitude_indexes],
+    -180-azimuth_angles[high_amplitude_indexes],
     c=amplitude_commands[high_amplitude_indexes],
     cmap="viridis",
 )
@@ -75,7 +81,7 @@ plt.xlabel("Velocity Command [Hz]")
 plt.ylabel("Azimuth Angle [deg]")
 plt.colorbar(label="Amplitude Command")
 plt.legend()
-plt.title("Azimuth Angle vs Velocity Command")
+#plt.title("Azimuth Angle vs Velocity Command")
 plt.yticks(np.arange(-120, 120, 30))
 plt.grid()
 

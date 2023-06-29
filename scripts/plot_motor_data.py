@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-command_file = "logs/flight-2023-05-16-01-04-38.csv"
+command_file = "logs/flight_data/flight-2023-05-16-01-00-51.csv"
 df = pd.read_csv(command_file)
 df['datetime'] = pd.to_datetime(df['Time'])
 position = df.columns.get_loc('datetime')
@@ -24,9 +24,19 @@ for _, row in command_df.iterrows():
 for key in motor_data:
     motor_data[key] = pd.DataFrame(motor_data[key])
 
+
 # Calculate the time differences between consecutive data points for each motor
 for key, motor_df in motor_data.items():
     motor_df['time_diff'] = motor_df['datetime'].diff().dt.total_seconds()
+
+# Remove data points where 'ControlVelocity' is NaN
+for key, motor_df in motor_data.items():
+    motor_df.dropna(subset=['ControlVelocity'], inplace=True)
+
+# Calculate the time index when the maximum time difference occurs for the first motor
+max_time_diff_index = motor_data[(3, 1)]['time_diff'].idxmax()
+print(f"Max time difference index: {max_time_diff_index}")
+print(f"Max time difference: {motor_data[(3, 1)]['time_diff'].max()}")
 
 # Create a separate plot for each motor to visualize the control loop time
 for i, (key, motor_df) in enumerate(motor_data.items(), start=1):
@@ -40,8 +50,9 @@ for i, (key, motor_df) in enumerate(motor_data.items(), start=1):
     plt.ylabel("Count (log scale)")
     plt.title(f'''Main Control Loop Time Distribution
               Mean: {loop_time_micro.mean():.2f} µs, Std: {loop_time_micro.std():.2f} µs
-              Min: {loop_time_micro.min():.2f} µs, Max: {loop_time_micro.max():.2f} µs''')
+              Max: {loop_time_micro.max():.2f} µs''') 
     plt.grid()
+plt.tight_layout()
 plt.show()
 # Create a separate plot for 'ControlVelocity' and 'Velocity' for each motor
 for i, (key, motor_df) in enumerate(motor_data.items(), start=1):
@@ -97,4 +108,5 @@ for i, (key, motor_df) in enumerate(motor_data.items(), start=1):
     plt.title("Phase Command")
     plt.legend()
     plt.grid()
+
 plt.show()
