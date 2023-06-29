@@ -1,7 +1,8 @@
 <img src="https://user-images.githubusercontent.com/12870693/234275380-4d819c23-d1b8-4313-8791-9a2e914ad55a.png" width="40%" height="40%"><img src="https://github.com/h-brenne/thrust_vector_control/assets/12870693/92e43e17-ef36-4290-98a9-4c02086e4129" width="30%" height="30%">
 
 
-# Related Repositories For Thrust Vectoring
+# Related Repositories and Resources For Thrust Vectoring
+### Rotor and Rotorcraft CAD Design and Production Files: [Fusion A360](https://a360.co/46kj3LV)
 ### Harmonic modulation motor driver firmware: [h-brenne/moteus-vector-uav](https://github.com/h-brenne/moteus_vector_uav)
 
 ### Thrust Vectoring Rotor and Rotorcraft Simulation: [h-brenne/coaxial_thrust_vector_uav_model](https://github.com/h-brenne/coaxial_thrust_vector_uav_model)
