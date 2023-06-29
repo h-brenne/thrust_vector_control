@@ -1,7 +1,14 @@
-# Thrust Vector Control
 <img src="https://user-images.githubusercontent.com/12870693/234275380-4d819c23-d1b8-4313-8791-9a2e914ad55a.png" width="40%" height="40%"><img src="https://user-images.githubusercontent.com/12870693/234279627-db8c392b-cda7-4913-9b33-a430926070d3.png" width="40%" height="40%">
 
-This repository contains a work-in-progress program for controlling the Moteus open-source motor driver to enable thrust vector control for 
+# Related Repositories For Thrust Vectoring
+### Harmonic modulation motor driver firmware: [h-brenne/moteus-vector-uav](https://github.com/h-brenne/moteus_vector_uav)
+
+### Thrust Vectoring Rotor and Rotorcraft Simulation: [h-brenne/coaxial_thrust_vector_uav_model](https://github.com/h-brenne/coaxial_thrust_vector_uav_model)
+
+### PX4 Autopilot Thrust Vectoring Rotor Control Allocation: [h-brenne/PX4-thrust-vector-control](https://github.com/h-brenne/PX4-thrust-vector-control)
+
+# Thrust Vector Control
+This repository contains a program for controlling the Moteus open-source motor driver to enable thrust vector control for 
 aerial vehicles with just a single actuator. The program is designed to run on a Raspberry Pi with the Moteus Pi3Hat CAN adapter and custom moteus firmware [h-brenne/moteus-vector-uav](https://github.com/h-brenne/moteus_vector_uav).
 
 The repo consists of a cpp project, and python scripts to analyze data.
@@ -88,6 +95,3 @@ should be updated with a header element `Force Time Offset = 0.0`. Update this w
 #### Example results
 <img src="https://user-images.githubusercontent.com/12870693/234284012-f81d746c-369f-4833-95ee-9fb075397dca.png" width="40%" height="40%"><img src="https://user-images.githubusercontent.com/12870693/234284536-6e1de7c5-f816-4678-b291-5b7fe1cc4ee6.png" width="40%" height="40%"><img src="https://user-images.githubusercontent.com/12870693/234284395-f2d7e31a-be34-46f9-950f-5182517e2069.png" width="40%" height="40%">
 ### Thrust Vector Control
-**TODO**
-
-Please note that this repository is a work in progress and does not have the ambition to be highly reusable.
