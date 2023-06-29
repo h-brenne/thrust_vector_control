@@ -1,4 +1,5 @@
-<img src="https://user-images.githubusercontent.com/12870693/234275380-4d819c23-d1b8-4313-8791-9a2e914ad55a.png" width="40%" height="40%"><img src="https://user-images.githubusercontent.com/12870693/234279627-db8c392b-cda7-4913-9b33-a430926070d3.png" width="40%" height="40%">
+<img src="https://user-images.githubusercontent.com/12870693/234275380-4d819c23-d1b8-4313-8791-9a2e914ad55a.png" width="40%" height="40%"><img src="https://github.com/h-brenne/thrust_vector_control/assets/12870693/92e43e17-ef36-4290-98a9-4c02086e4129" width="30%" height="30%">
+
 
 # Related Repositories For Thrust Vectoring
 ### Harmonic modulation motor driver firmware: [h-brenne/moteus-vector-uav](https://github.com/h-brenne/moteus_vector_uav)
