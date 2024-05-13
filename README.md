@@ -1,5 +1,6 @@
 <img src="https://user-images.githubusercontent.com/12870693/234275380-4d819c23-d1b8-4313-8791-9a2e914ad55a.png" width="40%" height="40%"><img src="https://github.com/h-brenne/thrust_vector_control/assets/12870693/92e43e17-ef36-4290-98a9-4c02086e4129" width="30%" height="30%">
-
+- [Video](https://www.youtube.com/watch?app=desktop&v=HBLV1LE9DL0)
+- Thesis: [Design, Modeling, Control and Integration of Thrust Vectoring Rotors in Micro Aerial Vehicles](https://ntnuopen.ntnu.no/ntnu-xmlui/handle/11250/3097649)
 
 # Related Repositories and Resources For Thrust Vectoring
 ### Rotor and Rotorcraft CAD Design and Production Files: [Fusion A360](https://a360.co/46kj3LV)
@@ -20,7 +21,6 @@ Using data from a 6-axis force/torque sensor, the relationship between motor com
 The **thrust vector controller** takes thrust vector setpoints, and sends motor commands based on the relationships found from calibration. These
 thrust vector setpoints will typcially come from a flight controller.
 ## Table of Contents 
-- 
 - [Building the Code](#building-the-cpp-project)
   - [Dependencies](#dependencies)
   - [Building](#building)
